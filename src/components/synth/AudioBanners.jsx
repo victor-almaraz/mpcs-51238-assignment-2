@@ -1,0 +1,34 @@
+'use client';
+
+import { Alert, Button } from '@/design-systems/meta';
+
+/**
+ * Audio state banners and error alerts under the transport (controls-and-accessibility.md
+ * "UI states catalogue"). Banners announced through the live regions use live={false}.
+ */
+export default function AudioBanners({ ui, alerts, actions }) {
+  return (
+    <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 md:px-8 empty:hidden">
+      {ui.audioState === 'paused' && (
+        <Alert tone="warning" action={<Button onClick={actions.resumeAudio}>Resume audio</Button>}>
+          Audio is paused by the browser.
+        </Alert>
+      )}
+      {ui.audioState === 'failed' && (
+        <Alert tone="error" live={false} action={<Button onClick={actions.restartAudio}>Restart audio</Button>}>
+          The audio safety stage stopped, so output is silent.
+        </Alert>
+      )}
+      {ui.ducked && (
+        <Alert tone="warning" live={false} action={<Button onClick={actions.restoreLevel}>Restore level</Button>}>
+          Level reduced — sustained loud output.
+        </Alert>
+      )}
+      {alerts.map((a) => (
+        <Alert key={a.key} tone={a.tone} onDismiss={() => actions.dismissAlert(a.key)}>
+          {a.text}
+        </Alert>
+      ))}
+    </div>
+  );
+}

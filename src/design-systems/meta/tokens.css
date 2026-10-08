@@ -1,0 +1,58 @@
+/*
+ * Meta design system: bare black and white (AGENTS.md step 1).
+ * Used by the synth rack, mood board, design system and hub pages.
+ * A page opts in with data-ds="meta" on its root element.
+ *
+ * Contrast (on #ffffff):
+ *   fg #171717 17.9:1, muted #525252 7.8:1 (text >= 4.5:1)
+ *   border-strong #737373 4.7:1, focus #000000 21:1 (controls >= 3:1)
+ *   border #d4d4d4 is a divider only, never a control boundary.
+ * Status colours are undecided: danger/success/warning map to black or
+ * near-black, and components add a word and glyph ("Error:", "✓") so meaning
+ * never depends on colour. They stay separate tokens so a later style can
+ * colour them.
+ *
+ * Inside @layer base so Tailwind utilities on the same element still win.
+ */
+@layer base {
+  [data-ds="meta"] {
+    color-scheme: light;
+
+    --ds-bg: #ffffff;
+    --ds-surface: #ffffff;
+    --ds-surface-2: #f5f5f5;
+    --ds-hover: #f5f5f5;
+    --ds-active: #e5e5e5;
+
+    --ds-fg: #171717;
+    --ds-muted: #525252;
+
+    --ds-border: #d4d4d4;
+    --ds-border-strong: #737373;
+
+    --ds-accent: #000000;
+    --ds-accent-fg: #ffffff;
+    --ds-accent-hover: #262626;
+
+    --ds-selected: #171717;
+    --ds-selected-fg: #ffffff;
+
+    --ds-focus: #000000;
+
+    --ds-danger: #000000;
+    --ds-danger-bg: #f5f5f5;
+    --ds-success: #171717;
+    --ds-success-bg: #f5f5f5;
+    --ds-warning: #171717;
+    --ds-warning-bg: #f5f5f5;
+
+    --ds-radius: 0px;
+
+    --ds-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --ds-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+    background: var(--ds-bg);
+    color: var(--ds-fg);
+    font-family: var(--ds-font-sans);
+  }
+}
