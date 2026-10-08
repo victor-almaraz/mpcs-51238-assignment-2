@@ -35,7 +35,7 @@ export default function SegmentedControl({
           const id = `${baseId}-${i}`;
           const checked = opt.value === value;
           return (
-            <div key={String(opt.value)} className={cx('relative flex min-w-0 flex-1', i > 0 && '-ml-px')}>
+            <div key={String(opt.value)} className={cx('relative flex min-w-0 flex-auto', i > 0 && '-ml-px')}>
               <input
                 id={id}
                 type="radio"

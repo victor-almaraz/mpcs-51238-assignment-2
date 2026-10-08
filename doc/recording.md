@@ -550,13 +550,13 @@ export async function renderSongToWav(
 - `startRendering()` allocates the full `AudioBuffer`: 10 min + 3 s at 48 kHz is 231.6 MB of float32, plus the WAV output. `NotSupportedError` or `RangeError` during construction or rendering maps to the out-of-memory state.
 
 ## UI
-Controls sit in the transport after Play/Stop (`layout-and-responsive.md`); component rules are in `controls-and-accessibility.md`. Recording UI does not use the accent colour, and every state is conveyed by text.
+Record and its indicator sit in the transport's Master group. Render to WAV and its progress sit in the Song group. Format is in the File menu (`layout-and-responsive.md`). Component rules are in `controls-and-accessibility.md`. Recording UI does not use the accent colour, and every state is conveyed by text.
 
 | Control | Specification |
 |---|---|
 | Record | `<button aria-pressed>` labelled "Record", icon plus text. Disabled while rendering. |
 | Recording indicator | Text "REC" and elapsed/limit `02:13 / 10:00`. The dot glyph is `aria-hidden`. |
-| Format | Select: "WAV 16-bit" (default), "WAV 32-bit float". Shared by both modes; disabled during capture. |
+| Format | Two `menuitemradio` items in the File menu: "WAV 16-bit" (default), "WAV 32-bit float". Shared by both modes; disabled during capture. |
 | Peak | Text "Peak −3.2 dB" from chunk `peak`; "Clip" badge when `clipped`. |
 | Render to WAV | Enabled only when a MIDI file is loaded; disabled while recording. |
 | Render progress | `<progress max="100" aria-label="Render progress">` with text "Rendering 42 %"; no `value` (indeterminate) without `suspend`. |

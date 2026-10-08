@@ -1,0 +1,67 @@
+'use client';
+
+import { useRef } from 'react';
+import { MenuButton } from '@/design-systems/meta';
+
+const FORMATS = [
+  { value: 'pcm16', label: 'WAV 16-bit' },
+  { value: 'float32', label: 'WAV 32-bit float' },
+];
+
+/**
+ * File menu in the header: Load MIDI, Save patch, Load patch, and the WAV format shared
+ * by Record and Render (recording.md "UI"). The file inputs are visually hidden and
+ * opened from the menu items; focus returns to the menu button.
+ */
+export default function FileMenu({ ui, hasWidgets, readingMidi, format, onFormat, actions }) {
+  const buttonRef = useRef(null);
+  const midiRef = useRef(null);
+  const patchRef = useRef(null);
+  const capturing = ui.recState !== 'idle' || ui.renderState !== 'idle';
+
+  const items = [
+    { value: 'midi', label: readingMidi ? 'Reading MIDI file…' : 'Load MIDI file…', disabled: readingMidi },
+    { value: 'save', label: 'Save patch', disabled: !hasWidgets, disabledReason: 'add a synth first' },
+    { value: 'patch', label: 'Load patch…' },
+    { type: 'separator', value: 'formats' },
+    ...FORMATS.map((f) => ({
+      type: 'radio',
+      value: f.value,
+      label: f.label,
+      checked: format === f.value,
+      disabled: capturing,
+      disabledReason: 'recording or rendering',
+    })),
+  ];
+
+  const handlers = {
+    midi: () => midiRef.current?.click(),
+    patch: () => patchRef.current?.click(),
+    save: actions.savePatch,
+  };
+
+  const onSelect = (value) => {
+    buttonRef.current?.focus();
+    if (handlers[value]) handlers[value]();
+    else onFormat(value);
+  };
+
+  return (
+    <>
+      <MenuButton ref={buttonRef} label="File" items={items} onSelect={onSelect} variant="secondary" align="end" />
+      <HiddenFileInput inputRef={midiRef} accept=".mid,.midi,.rmi,audio/midi,audio/x-midi" onFile={actions.loadMidi} />
+      <HiddenFileInput inputRef={patchRef} accept=".json,application/json" onFile={actions.loadPatch} />
+    </>
+  );
+}
+
+/** Out of the tab order and the accessibility tree; reached only through the menu. */
+function HiddenFileInput({ inputRef, accept, onFile }) {
+  const onChange = (e) => {
+    const input = e.target;
+    const file = input.files && input.files[0];
+    input.value = '';
+    if (file) onFile(file);
+  };
+  return <input ref={inputRef} type="file" accept={accept} onChange={onChange} tabIndex={-1} aria-hidden="true" className="sr-only" />;
+}

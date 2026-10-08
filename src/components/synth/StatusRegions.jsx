@@ -1,6 +1,7 @@
 'use client';
 
 import { Button, Disclosure } from '@/design-systems/meta';
+import { rowInner } from './layout';
 
 const ACTION_LABELS = { undo: 'Undo', 'download-again': 'Download again' };
 
@@ -10,7 +11,7 @@ const ACTION_LABELS = { undo: 'Undo', 'download-again': 'Download again' };
  */
 export default function StatusRegions({ polite, assertive, onAction }) {
   return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 md:px-8">
+    <div className={`${rowInner} flex flex-col gap-2`}>
       <div aria-live="polite" className="flex min-h-6 flex-wrap items-center gap-2 text-sm">
         {polite && (
           <span key={polite.id} className="flex flex-wrap items-center gap-2">

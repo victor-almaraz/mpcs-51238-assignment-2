@@ -1,23 +1,25 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { Button, TextOutput } from '@/design-systems/meta';
 import { RECORD_MAX_SECONDS } from '@/audio/recording/recorder';
 import MasterSection from './MasterSection';
 import RecordControls from './RecordControls';
-import FilesGroup from './FilesGroup';
+import SongControls from './SongControls';
 import { formatClock, formatClock2 } from './format';
+import { rowInner, rowPad } from './layout';
 
 const PEAK_HOLD_S = 1;
 
 /**
- * Playback, Master and Files groups in one component (layout-and-responsive.md "Transport
- * placement"). Mobile: Playback + Master form a fixed two-row bottom bar and Files stays in
- * flow. Desktop (lg): all three groups sit in one sticky bar under the header.
+ * Master group (Record, master volume, meter, Limit badge, Panic) and, once a MIDI file is
+ * loaded, the Song group, in one component (layout-and-responsive.md "Transport placement").
+ * Mobile: Master is a fixed two-row bottom bar and Song stays in flow under the header.
+ * Desktop (lg): both groups sit in one sticky bar under the header, Master first so it
+ * does not move when a song appears. `fileMenu` is always the last item.
  * Position, meter, Limit badge and recording time are written to the DOM once per animation
  * frame; audio is never driven from rAF.
  */
-export default function Transport({ session, ui, song, songName, readingMidi, hasWidgets, format, onFormat, actions }) {
+export default function Transport({ session, ui, song, songName, readingMidi, fileMenu, actions }) {
   const posRef = useRef(null);
   const meterRef = useRef(null);
   const limitRef = useRef(null);
@@ -59,30 +61,11 @@ export default function Transport({ session, ui, song, songName, readingMidi, ha
       aria-label="Transport"
       aria-busy={readingMidi || undefined}
       onKeyDown={onKeyDown}
-      className="border-border bg-surface px-4 lg:sticky lg:top-0 lg:z-30 lg:border-b lg:px-8 lg:py-2"
+      className={`border-border bg-surface ${rowPad} lg:sticky lg:top-0 lg:z-30 lg:border-b lg:py-2`}
     >
-      <div className="mx-auto flex max-w-7xl flex-col gap-2 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-6">
-        <div className="fixed inset-x-0 bottom-0 z-30 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border bg-surface px-4 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:static lg:z-auto lg:flex-nowrap lg:gap-6 lg:border-0 lg:p-0">
+      <div className={`${rowInner} flex flex-col gap-2 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-6`}>
+        <div className={`fixed inset-x-0 bottom-0 z-30 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border bg-surface ${rowPad} pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:static lg:z-auto lg:flex-nowrap lg:gap-6 lg:border-0 lg:p-0`}>
           <div className="order-1 flex min-w-0 flex-1 flex-wrap items-center gap-2 lg:order-none lg:flex-none">
-            <Button
-              size="lg"
-              onClick={actions.playToggle}
-              disabled={!song}
-              title={song ? undefined : 'Load a MIDI file to play'}
-            >
-              {ui.playing ? (
-                <>
-                  <span aria-hidden="true">■</span> Stop
-                </>
-              ) : (
-                <>
-                  <span aria-hidden="true">▶</span> Play
-                </>
-              )}
-            </Button>
-            <TextOutput ref={posRef} aria-live="off" aria-label="Position">
-              {`0:00 / ${formatClock(duration)}`}
-            </TextOutput>
             <RecordControls
               ui={ui}
               available={running && ui.caps.recorder === true}
@@ -92,17 +75,15 @@ export default function Transport({ session, ui, song, songName, readingMidi, ha
           </div>
           <MasterSection ui={ui} onMaster={actions.master} onPanic={actions.panic} meterRef={meterRef} limitRef={limitRef} />
         </div>
-        <div className="py-2 lg:py-0">
-          <FilesGroup
-            ui={ui}
-            songName={songName}
-            hasSong={!!song}
-            readingMidi={readingMidi}
-            hasWidgets={hasWidgets}
-            format={format}
-            onFormat={onFormat}
-            actions={actions}
-          />
+        {/* Mobile: Song and the menu share the in-flow row under the header. lg: `contents`
+            makes both direct items of the bar, and the menu is pushed to its right end. */}
+        <div className="flex items-start gap-2 py-2 lg:contents">
+          {(song || readingMidi) && (
+            <div className="min-w-0 flex-1 lg:flex-none xl:border-l xl:border-border xl:pl-6">
+              <SongControls ui={ui} song={song} songName={songName} readingMidi={readingMidi} posRef={posRef} actions={actions} />
+            </div>
+          )}
+          <div className="ml-auto shrink-0">{fileMenu}</div>
         </div>
       </div>
     </section>

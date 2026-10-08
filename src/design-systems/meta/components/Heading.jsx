@@ -7,7 +7,7 @@ export default function Heading({ level = 2, className, ref, ...rest }) {
     <Tag
       ref={ref}
       className={cx(
-        n === 1 ? 'text-xl font-semibold' : 'text-base font-semibold',
+        n === 1 ? 'text-4xl font-semibold tracking-tight md:text-6xl' : 'text-base font-semibold',
         'rounded-ds',
         focusRing,
         className,

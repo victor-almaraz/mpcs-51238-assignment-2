@@ -4,24 +4,31 @@
 Page structure, the rack grid, widget anatomy and responsive behaviour at 390 px and 1440 px, using Tailwind only. Control states are in `controls-and-accessibility.md`.
 
 ## Page regions (in DOM and visual order)
-1. **Header bar:** site title "Synth Rack" (the only H1) and a link back to the hub.
-2. **Transport bar**, in three groups:
-   - **Playback:** Play/Stop toggle, position `0:42 / 3:10`, Record toggle and recording indicator (`recording.md`).
-   - **Master:** master volume, meter, Limit badge, Panic (`audio-safety.md`).
-   - **Files:** Load MIDI (file button) with the file name or "No MIDI file", Render to WAV, Format, Save patch, Load patch.
-3. **Rack toolbar:** the **Add synth** button (primary, the only accent-coloured control) and the live-input group (Play with keyboard, octave, Connect MIDI device, device status; `live-input.md`).
-4. **Rack:** the widget grid.
+1. **Header (hero):** page title "Synthesizer Rack" (the only H1) and a link back to the hub.
+2. **Transport bar**, in two groups followed by the File menu:
+   - **Master** (always shown): Record toggle and recording indicator (`recording.md`), master volume, meter, Limit badge, Panic (`audio-safety.md`).
+   - **Song** (shown only once a MIDI file is loaded or being read): file name, Play/Stop toggle, position `0:42 / 3:10`, Render to WAV and render progress.
+   - **File menu** (always shown, last item; see "File menu").
+3. **Live input:** Play with keyboard, octave, Connect MIDI device, device status (`live-input.md`).
+4. **Rack:** the **Add synth** button (primary, the only accent-coloured control), then the widget grid.
 5. **Status regions:** one `aria-live="polite"` region (loaded, saved, recording states) and one `aria-live="assertive"` region (Panic, audio fault).
+
+## Alignment
+- Meta controls (header, transport, banners, live input, status regions) share one left edge at every width. Each full-width row has side padding `px-4 md:px-8`, and its content is `mx-auto w-full max-w-7xl` inside that padding. The shared classes live in `src/components/synth/layout.js`.
+- The rack (Add synth and the widgets) is indented further on the left only (`pl-2 md:pl-6`), so widgets align with each other at a deeper indent than the meta controls. The right edge stays with the meta rows.
+- The live-input group is left-aligned.
 
 ## Grid
 ```html
-<section aria-label="Synth rack" class="mx-auto max-w-screen-xl px-4 md:px-8">
-  <ul class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"> <!-- one <li> per widget -->
+<main class="px-4 md:px-8 …">
+  <section aria-label="Synth rack" class="mx-auto w-full max-w-7xl pl-2 md:pl-6">
+    <!-- Add synth -->
+    <ul class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"> <!-- one <li> per widget -->
 ```
-- At 390 px: 1 column. Widgets are 358 px wide with 16 px side padding.
+- At 390 px: 1 column. Widgets are 350 px wide (16 px page padding, plus 8 px rack indent on the left).
 - At 1440 px:
-  - `max-w-screen-xl` (1280 px) minus 64 px of padding leaves 1216 px.
-  - 3 columns with 16 px gaps gives widgets about 395 px wide.
+  - `max-w-7xl` (1280 px) minus the 24 px rack indent leaves 1256 px.
+  - 3 columns with 16 px gaps gives widgets about 408 px wide.
   - The widget is designed at ~360 px; its internal layout is identical at every breakpoint.
 - Widgets keep insertion order. Position does not encode routing; the part select and the Live chip do.
 - New widgets go at the end. After adding, focus moves to the new widget's heading, and the widget scrolls into view with `scrollIntoView({ block: 'nearest' })` (instant under reduced motion).
@@ -54,15 +61,14 @@ Page structure, the rack grid, widget anatomy and responsive behaviour at 390 px
   - Fade only the params area to `opacity-60`, and show the M chip as selected.
   - The header keeps full contrast.
 
-## Rack toolbar
-- Desktop (1440 px): one row. Add synth on the left; live-input group on the right.
-- Mobile (390 px): Add synth full-width on the first row; live-input group on a second row. Play with keyboard is hidden when `matchMedia('(hover: none) and (pointer: coarse)')` matches.
-- Connect MIDI device is absent when Web MIDI is unsupported (`live-input.md`).
+## Live input and Add synth
+- Live input: one left-aligned row that wraps on mobile. Play with keyboard is hidden when `matchMedia('(hover: none) and (pointer: coarse)')` matches. Connect MIDI device is absent when Web MIDI is unsupported (`live-input.md`). The row is not rendered when neither control applies.
+- Add synth: the first item in the rack, at the rack indent. Full-width on mobile, natural width from `md`.
 
 ## Type scale (max 3 sizes, 2 weights)
 | Role | Tailwind |
 |---|---|
-| Page title | `text-xl font-semibold` |
+| Page title (hero) | `text-4xl md:text-6xl font-semibold tracking-tight` |
 | Widget title, section labels | `text-base font-semibold` |
 | Everything else (labels, values, buttons) | `text-sm font-normal` |
 
@@ -75,11 +81,11 @@ Page structure, the rack grid, widget anatomy and responsive behaviour at 390 px
 
 ## Transport placement
 - Mobile (390 px):
-  - Playback and Master groups form a **sticky bottom bar** in two rows: `fixed inset-x-0 bottom-0 border-t bg-white pb-[env(safe-area-inset-bottom)]`. Row 1: Play/Stop, position, Record, Panic. Row 2: master volume, meter, Limit badge.
-  - The Files group is not sticky; it sits above the rack toolbar.
+  - The Master group forms a **sticky bottom bar** in two rows: `fixed inset-x-0 bottom-0 border-t bg-white pb-[env(safe-area-inset-bottom)]`. Row 1: Record, Panic. Row 2: master volume, meter, Limit badge.
+  - The Song group and the File menu are not sticky; they share a row under the header, with the File menu at its right end.
   - `<main>` has `pb-32` so the last widget is not hidden behind the bar.
   - The viewport metadata sets `viewport-fit=cover`; `env()` insets require it.
-- Desktop (1440 px): all three groups sit in one `sticky top-0` bar under the header, in the order Playback, Master, Files.
+- Desktop (1440 px): both groups sit in one `sticky top-0` bar under the header, Master first so it does not move when the Song group appears. The File menu is the last item, pushed to the right end of the bar. The Song group wraps to a second line when the bar is too narrow.
 - Panic is visible at every breakpoint.
 - One component with responsive classes. Rendering two transports would duplicate controls in the accessibility tree.
 
@@ -90,11 +96,17 @@ Page structure, the rack grid, widget anatomy and responsive behaviour at 390 px
   - Desktop: an anchored dropdown (`absolute`, `w-72`).
 - Choosing a type adds the widget, closes the menu and moves focus (see Grid).
 
+## File menu
+- A secondary button "File", the last item of the transport bar, following the APG menu-button pattern. Its dropdown is anchored to the right edge of the button at every breakpoint.
+- Items, in order:
+  - "Load MIDI file…" and "Load patch…", which open visually hidden `<input type="file">` elements. Those inputs are out of the tab order and the accessibility tree.
+  - "Save patch", disabled with "Unavailable: add a synth first" when the rack is empty.
+  - A separator, then the WAV format as two `menuitemradio` items, "WAV 16-bit" and "WAV 32-bit float". They are disabled while recording or rendering.
+- Choosing an item closes the menu and returns focus to the File button.
+
 ## Empty states
 - No widgets: the rack shows one panel, "No synths yet. Add a synth to start.", with the Add synth button inside it in the same position.
-- No MIDI file:
-  - The transport shows "No MIDI file loaded".
-  - Play is disabled, with the explanation "Load a MIDI file to play" (as `title` or description text).
+- No MIDI file: the Song group (Play/Stop, position, Render to WAV) is not rendered; the transport shows the Master group only.
 
 ## Breakpoint checks (390 and 1440)
 - No horizontal scroll at 390 px. Long part labels truncate (`truncate`, with the full name in `title`).

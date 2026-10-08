@@ -11,7 +11,8 @@ import { readPatchFile, savePatch } from '@/patch/file-io';
 import { initialRack, rackReducer } from '@/state/rack';
 import { Session } from '@/state/session';
 import Transport from './Transport';
-import RackToolbar from './RackToolbar';
+import FileMenu from './FileMenu';
+import LiveInputControls from './LiveInputControls';
 import AddSynthMenu from './AddSynthMenu';
 import AudioBanners from './AudioBanners';
 import StatusRegions from './StatusRegions';
@@ -19,6 +20,7 @@ import StartNotice from './StartNotice';
 import ConfirmReplace from './ConfirmReplace';
 import WidgetCard from './widgets/WidgetCard';
 import { formatClock } from './format';
+import { rackIndent, rowInner, rowPad } from './layout';
 
 const UNDO_MS = 5000;
 
@@ -283,9 +285,9 @@ export default function SynthApp() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="border-b border-border px-4 py-3 md:px-8">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-          <Heading level={1}>Synth Rack</Heading>
+      <header className={`border-b border-border ${rowPad} py-6 md:py-10`}>
+        <div className={`${rowInner} flex flex-wrap items-end justify-between gap-x-6 gap-y-2`}>
+          <Heading level={1}>Synthesizer Rack</Heading>
           <Link href="/" className="text-sm underline underline-offset-2 hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
             Back to hub
           </Link>
@@ -298,25 +300,33 @@ export default function SynthApp() {
         song={song}
         songName={loaded ? loaded.name : null}
         readingMidi={readingMidi}
-        hasWidgets={!empty}
-        format={format}
-        onFormat={setFormat}
+        fileMenu={
+          <FileMenu
+            ui={ui}
+            hasWidgets={!empty}
+            readingMidi={readingMidi}
+            format={format}
+            onFormat={setFormat}
+            actions={actions}
+          />
+        }
         actions={actions}
       />
 
-      <main className="flex flex-1 flex-col gap-4 py-4 pb-40 lg:pb-8">
+      <main className={`flex flex-1 flex-col gap-4 ${rowPad} py-4 pb-40 lg:pb-8`}>
         <AudioBanners ui={ui} alerts={alerts} actions={actions} />
 
-        <div className="mx-auto w-full max-w-7xl px-4 md:px-8">
-          <RackToolbar ui={ui} showAdd={!empty} onAdd={addSynth} actions={actions} />
-        </div>
+        <LiveInputControls ui={ui} actions={actions} />
 
-        <section aria-label="Synth rack" className="mx-auto w-full max-w-7xl px-4 md:px-8">
+        <section aria-label="Synth rack" className={`${rowInner} ${rackIndent} flex flex-col gap-4`}>
           {empty ? (
             <EmptyState title="No synths yet. Add a synth to start.">
               <AddSynthMenu onAdd={addSynth} pluckAvailable={ui.caps.ks} />
             </EmptyState>
           ) : (
+            <AddSynthMenu onAdd={addSynth} pluckAvailable={ui.caps.ks} className="w-full md:w-auto md:self-start" />
+          )}
+          {!empty && (
             <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {rack.widgets.map((w) => (
                 <li key={w.id}>

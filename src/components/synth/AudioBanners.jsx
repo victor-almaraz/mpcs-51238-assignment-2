@@ -1,6 +1,7 @@
 'use client';
 
 import { Alert, Button } from '@/design-systems/meta';
+import { rowInner } from './layout';
 
 /**
  * Audio state banners and error alerts under the transport (controls-and-accessibility.md
@@ -8,7 +9,7 @@ import { Alert, Button } from '@/design-systems/meta';
  */
 export default function AudioBanners({ ui, alerts, actions }) {
   return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 md:px-8 empty:hidden">
+    <div className={`${rowInner} flex flex-col gap-2 empty:hidden`}>
       {ui.audioState === 'paused' && (
         <Alert tone="warning" action={<Button onClick={actions.resumeAudio}>Resume audio</Button>}>
           Audio is paused by the browser.

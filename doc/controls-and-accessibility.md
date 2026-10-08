@@ -63,7 +63,7 @@ How each control is built, its states and keyboard support, how it maps to desig
 | Start notice | native `<dialog>` + `showModal()` | shown before the first audio start per session; button "Start audio" |
 | Level reduced banner | inline alert + "Restore level" button | sustained-level duck (`audio-safety.md`) |
 | Record, Format, Render to WAV, render progress, Cancel | see `recording.md` | — |
-| Load MIDI / Load patch | visually hidden `<input type="file">` + a styled `<label>` acting as a button | the real input stays in the tab order (`sr-only`); the label shows the `focus-visible` ring via `peer` |
+| File menu (Load MIDI, Save patch, Load patch, Format) | APG menu button; file items open a visually hidden `<input type="file">` | the inputs are out of the tab order and `aria-hidden`; focus returns to the File button after a choice (`layout-and-responsive.md` "File menu") |
 | Confirm replace rack | native `<dialog>` + `showModal()` | focus moves into the dialog; `Esc` cancels; initial focus on "Cancel" |
 
 ## Interaction states (every interactive element)
@@ -96,7 +96,7 @@ How each control is built, its states and keyboard support, how it maps to desig
 - Any playhead or level meter must stay correct without animation.
 
 ## Keyboard map
-- `Tab` order follows the DOM: header, transport (including master section and recording controls), Add synth, live-input controls, then each widget (header, params, footer).
+- `Tab` order follows the DOM: header, transport (recording controls, master section, song controls, File menu), live-input controls, Add synth, then each widget (header, params, footer).
 - `Space`/`Enter` activate buttons. When focus is not in a text field, `Space` on the transport toggles play.
 - No global single-key shortcuts. Letter keys play notes only while Play with keyboard is on, and never when focus is in a text input, select or dialog.
 - `Escape` closes an open menu or dialog; otherwise it triggers Panic.
@@ -128,7 +128,7 @@ How each control is built, its states and keyboard support, how it maps to desig
 | State | Trigger | UI |
 |---|---|---|
 | Empty: no synths | widgets.length === 0 | empty panel with Add synth |
-| Empty: no MIDI | no song | "No MIDI file loaded"; Play disabled; part selects disabled at "All parts" |
+| Empty: no MIDI | no song | Song group hidden (no Play or Render to WAV); part selects disabled at "All parts" |
 | Empty: nothing armed | live note received, no widget armed | status "No synth is armed for live input" (once per session) |
 | Loading: parsing MIDI | file chosen | file button shows "Reading…", `aria-busy="true"` on the transport |
 | Loading: worklet | first Pluck added | Pluck card shows "Loading pluck engine…"; params disabled |

@@ -10,15 +10,25 @@ import Button from './Button';
  * the button and calls preventDefault (so the app skips Panic); Tab, focus or a
  * pointer outside closes. Choosing an item calls onSelect(value) then closes
  * without moving focus (the app focuses the new widget).
- * Mobile: full-width list in normal flow; md+: anchored dropdown.
+ * Items: `{ value, label, description?, disabled?, disabledReason? }`, plus
+ * `{ type: 'radio', checked }` for menuitemradio and `{ type: 'separator' }`.
+ * Separators are skipped by the arrow keys.
+ * align="flow": full-width list in normal flow on mobile, anchored dropdown at md+.
+ * align="end": anchored dropdown at every size, right edge under the button.
  * `className` goes on the wrapper, other props and `ref` on the button.
  */
+const MENU_PLACEMENT = {
+  flow: 'mt-2 w-full md:absolute md:top-full md:left-0 md:z-20 md:w-72',
+  end: 'absolute top-full right-0 z-20 mt-2 w-72',
+};
+
 export default function MenuButton({
   label,
   items,
   onSelect,
   variant = 'primary',
   size = 'lg',
+  align = 'flow',
   buttonClassName,
   menuClassName,
   className,
@@ -56,7 +66,10 @@ export default function MenuButton({
     };
   }, [open]);
 
-  const count = items.length;
+  // Focus indices count menu items only, not separators.
+  const count = items.filter((item) => item.type !== 'separator').length;
+  itemRefs.current.length = count;
+  let itemIndex = 0;
 
   function openAt(index) {
     if (count === 0) return;
@@ -163,38 +176,47 @@ export default function MenuButton({
         hidden={!open}
         onKeyDown={handleMenuKeyDown}
         className={cx(
-          'mt-2 w-full rounded-ds border border-border-strong bg-surface py-1 text-sm text-fg',
-          'md:absolute md:top-full md:left-0 md:z-20 md:w-72',
+          'rounded-ds border border-border-strong bg-surface py-1 text-sm text-fg',
+          MENU_PLACEMENT[align],
           menuClassName,
         )}
       >
-        {items.map((item, i) => (
-          <li key={String(item.value)} role="none">
-            <button
-              ref={(el) => {
-                itemRefs.current[i] = el;
-              }}
-              type="button"
-              role="menuitem"
-              tabIndex={-1}
-              aria-disabled={item.disabled ? 'true' : undefined}
-              onClick={() => choose(item)}
-              className={cx(
-                'flex min-h-11 w-full flex-col items-start justify-center px-3 py-2 text-left',
-                'focus:bg-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus',
-                item.disabled ? 'cursor-not-allowed text-muted' : 'cursor-pointer hover:bg-hover active:bg-active',
-              )}
-            >
-              <span>
-                <span className="font-semibold">{item.label}</span>
-                {item.description ? ` — ${item.description}` : null}
-              </span>
-              {item.disabled && item.disabledReason ? (
-                <span className="text-muted">Unavailable: {item.disabledReason}</span>
-              ) : null}
-            </button>
-          </li>
-        ))}
+        {items.map((item) => {
+          if (item.type === 'separator') {
+            return <li key={String(item.value)} role="separator" className="my-1 border-t border-border" />;
+          }
+          const i = itemIndex++;
+          const radio = item.type === 'radio';
+          return (
+            <li key={String(item.value)} role="none">
+              <button
+                ref={(el) => {
+                  itemRefs.current[i] = el;
+                }}
+                type="button"
+                role={radio ? 'menuitemradio' : 'menuitem'}
+                aria-checked={radio ? (item.checked ? 'true' : 'false') : undefined}
+                tabIndex={-1}
+                aria-disabled={item.disabled ? 'true' : undefined}
+                onClick={() => choose(item)}
+                className={cx(
+                  'flex min-h-11 w-full flex-col items-start justify-center px-3 py-2 text-left',
+                  'focus:bg-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus',
+                  item.disabled ? 'cursor-not-allowed text-muted' : 'cursor-pointer hover:bg-hover active:bg-active',
+                )}
+              >
+                <span>
+                  {radio ? <span aria-hidden="true">{item.checked ? '● ' : '○ '}</span> : null}
+                  <span className="font-semibold">{item.label}</span>
+                  {item.description ? ` — ${item.description}` : null}
+                </span>
+                {item.disabled && item.disabledReason ? (
+                  <span className="text-muted">Unavailable: {item.disabledReason}</span>
+                ) : null}
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
