@@ -12,17 +12,13 @@ import { initialRack, rackReducer } from '@/state/rack';
 import { Session } from '@/state/session';
 import Transport from './Transport';
 import FileMenu from './FileMenu';
-import LiveInputControls from './LiveInputControls';
 import AddSynthMenu from './AddSynthMenu';
 import AudioBanners from './AudioBanners';
 import StatusRegions from './StatusRegions';
 import StartNotice from './StartNotice';
-import ConfirmReplace from './ConfirmReplace';
 import WidgetCard from './widgets/WidgetCard';
 import { formatClock } from './format';
-import { rackIndent, rowInner, rowPad } from './layout';
-
-const UNDO_MS = 5000;
+import { rackPanel, rowInner, rowPad } from './layout';
 
 const INITIAL_UI = {
   audioState: 'idle',          // idle | starting | running | paused | failed | error
@@ -64,19 +60,30 @@ export default function SynthApp() {
   const [assertive, setAssertive] = useState(null);
   const [alerts, setAlerts] = useState([]);
   const [noticeOpen, setNoticeOpen] = useState(false);
-  const [pendingPatch, setPendingPatch] = useState(null);
   const [oldIOS, setOldIOS] = useState(false);
   const noticeAck = useRef(false);
   const pendingAction = useRef(null);
   const headings = useRef(new Map());
   const focusNew = useRef(false);
-  const undoTimer = useRef(0);
-  const undoRestore = useRef(null);
+  const undo = useRef(null);           // { id, run }: offered while toast `id` is visible
 
+  /** Shows a status toast and returns its id. */
   const say = useCallback((text, opts = {}) => {
     const msg = { id: ++messageId, text, action: opts.action ?? null, details: opts.details ?? null };
     if (opts.assertive) setAssertive(msg);
     else setPolite(msg);
+    return msg.id;
+  }, []);
+
+  /** Shows a toast with Undo; `run` stays available until that toast is gone. */
+  const sayWithUndo = (text, run, opts = {}) => {
+    undo.current = { id: say(text, { ...opts, action: 'undo' }), run };
+  };
+
+  const dismissMessage = useCallback((id) => {
+    setPolite((m) => (m && m.id === id ? null : m));
+    setAssertive((m) => (m && m.id === id ? null : m));
+    if (undo.current?.id === id) undo.current = null;
   }, []);
 
   const showAlert = useCallback(({ key, tone = 'error', text }) => {
@@ -173,24 +180,20 @@ export default function SynthApp() {
       if (index < 0) return;
       const widget = rack.widgets[index];
       dispatch({ type: 'remove', id });
-      clearTimeout(undoTimer.current);
-      const restore = { widget: { ...widget, armed: false }, index };
-      say(`Removed ${widget.name}`, { action: 'undo' });
-      undoTimer.current = window.setTimeout(() => {
-        undoRestore.current = null;
-        setPolite((m) => (m && m.action === 'undo' ? { ...m, action: null } : m));
-      }, UNDO_MS);
-      undoRestore.current = restore;
+      const restored = { ...widget, armed: false };
+      sayWithUndo(`Removed ${widget.name}`, () => {
+        dispatch({ type: 'restore', widget: restored, index });
+        say(`Restored ${widget.name}`);
+      });
     },
   };
 
-  const onStatusAction = (action) => {
-    if (action === 'undo' && undoRestore.current) {
-      const { widget, index } = undoRestore.current;
-      undoRestore.current = null;
-      clearTimeout(undoTimer.current);
-      dispatch({ type: 'restore', widget, index });
-      say(`Restored ${widget.name}`);
+  const onStatusAction = (action, id) => {
+    if (action === 'undo') {
+      const u = undo.current;
+      if (!u || u.id !== id) return;
+      undo.current = null;
+      u.run();
     } else if (action === 'download-again') {
       session?.downloadAgain();
     }
@@ -227,10 +230,21 @@ export default function SynthApp() {
       .finally(() => setReadingMidi(false));
   };
 
+  /** Replaces the rack at once; a non-empty rack can be brought back with Undo (GNOME HIG). */
   const applyPatch = (parsed) => {
+    const previous = rack.widgets;
     session.replaceRack(() => dispatch({ type: 'replace', widgets: parsed.widgets }));
     const n = parsed.warnings.length;
-    say(n ? `Patch loaded (${n} setting${n === 1 ? '' : 's'} adjusted)` : 'Patch loaded', { details: n ? parsed.warnings : null });
+    const text = n ? `Patch loaded (${n} setting${n === 1 ? '' : 's'} adjusted)` : 'Patch loaded';
+    const details = n ? parsed.warnings : null;
+    if (previous.length === 0) {
+      say(text, { details });
+      return;
+    }
+    sayWithUndo(text, () => {
+      session.replaceRack(() => dispatch({ type: 'restoreAll', widgets: previous }));
+      say('Previous rack restored');
+    }, { details });
   };
 
   const loadPatch = (file) => {
@@ -238,8 +252,7 @@ export default function SynthApp() {
       .then((text) => {
         const parsed = parsePatch(text, song);
         showAlert({ key: 'patch', text: null });
-        if (rack.widgets.length > 0) setPendingPatch(parsed);
-        else applyPatch(parsed);
+        applyPatch(parsed);
       })
       .catch((err) => showAlert({ key: 'patch', text: `Couldn't load patch: ${err?.message || 'unknown error'}` }));
   };
@@ -289,7 +302,7 @@ export default function SynthApp() {
         <div className={`${rowInner} flex flex-wrap items-end justify-between gap-x-6 gap-y-2`}>
           <Heading level={1}>Synthesizer Rack</Heading>
           <Link href="/" className="text-sm underline underline-offset-2 hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
-            Back to hub
+            Back to Hub
           </Link>
         </div>
       </header>
@@ -313,12 +326,10 @@ export default function SynthApp() {
         actions={actions}
       />
 
-      <main className={`flex flex-1 flex-col gap-4 ${rowPad} py-4 pb-40 lg:pb-8`}>
+      <main className={`flex flex-1 flex-col gap-4 ${rowPad} pt-6 pb-40 lg:pb-8`}>
         <AudioBanners ui={ui} alerts={alerts} actions={actions} />
 
-        <LiveInputControls ui={ui} actions={actions} />
-
-        <section aria-label="Synth rack" className={`${rowInner} ${rackIndent} flex flex-col gap-4`}>
+        <section aria-label="Synth rack" className={`${rowInner} ${rackPanel} flex flex-col gap-4`}>
           {empty ? (
             <EmptyState title="No synths yet. Add a synth to start.">
               <AddSynthMenu onAdd={addSynth} pluckAvailable={ui.caps.ks} />
@@ -346,20 +357,10 @@ export default function SynthApp() {
           )}
         </section>
 
-        <StatusRegions polite={polite} assertive={assertive} onAction={onStatusAction} />
+        <StatusRegions polite={polite} assertive={assertive} onAction={onStatusAction} onDismiss={dismissMessage} />
       </main>
 
       <StartNotice open={noticeOpen} onStart={startFromNotice} onCancel={cancelNotice} silentSwitchNote={oldIOS} />
-      <ConfirmReplace
-        open={pendingPatch !== null}
-        count={rack.widgets.length}
-        onCancel={() => setPendingPatch(null)}
-        onConfirm={() => {
-          const parsed = pendingPatch;
-          setPendingPatch(null);
-          applyPatch(parsed);
-        }}
-      />
     </div>
   );
 }

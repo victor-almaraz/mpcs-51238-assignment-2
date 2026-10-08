@@ -24,7 +24,7 @@ export async function ensureRunning(): Promise<AudioContext> {
   return ctx;
 }
 ```
-- `ensureRunning()` is called from the first Add synth, Play, Connect MIDI device or Play with keyboard click. `resume()` is called before any `await`, which keeps user activation.
+- `ensureRunning()` is called from the first Add Synth, Play, Connect MIDI Device or Play with Keyboard click. `resume()` is called before any `await`, which keeps user activation.
 - The start notice and master fade-in in `audio-safety.md` apply to the first start.
 - `ctx.onstatechange`:
   - When the state becomes `suspended` or `interrupted`, the UI shows the error state "Audio paused — tap to resume" with a button that calls `resume()`.
@@ -131,7 +131,7 @@ v.env.gain.setTargetAtTime(0, tOff, v.release / 3);
 
 ## Teardown
 - Widget removal: `allNotesOff(now)`, then `dispose()` after 50 ms (disconnect the output; `port.close()` on worklets).
-- The context stays open for the session. It is closed only by "Restart audio" after a safety-stage error (`audio-safety.md`); the next gesture creates a new one.
+- The context stays open for the session. It is closed only by "Restart Audio" after a safety-stage error (`audio-safety.md`); the next gesture creates a new one.
 
 ## Sources
 - MDN, AudioParam.cancelAndHoldAtTime (https://developer.mozilla.org/en-US/docs/Web/API/AudioParam/cancelAndHoldAtTime)

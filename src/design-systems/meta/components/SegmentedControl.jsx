@@ -49,7 +49,7 @@ export default function SegmentedControl({
                 htmlFor={id}
                 title={opt.title}
                 className={cx(
-                  'relative flex min-h-8 min-w-0 flex-1 items-center justify-center rounded-ds border px-2 text-sm select-none motion-safe:transition-colors',
+                  'relative flex min-h-8 min-w-0 flex-1 items-center justify-center rounded-ds border px-1.5 text-sm select-none motion-safe:transition-colors',
                   'peer-focus-visible:z-10',
                   peerFocusRing,
                   checked ? cx(selectedLook, 'z-[1]') : 'border-border-strong bg-surface text-fg',

@@ -77,6 +77,7 @@ export default function WidgetCard({ widget, song, pluckEngine, headingRef, acti
           value={widget.volumeDb}
           defaultDb={VOLUME.widgetDefault}
           onChange={(volumeDb) => actions.update(id, { volumeDb })}
+          editable
         />
       </div>
     </Card>

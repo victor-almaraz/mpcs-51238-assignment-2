@@ -49,7 +49,7 @@ function liveAllOff() {
 - Flood limit: `liveOn` drops note-ons beyond 200 per second across all sources (project limit; `audio-safety.md`). A dropped note-on does not increment `held`, so its note-off is ignored.
 - Live recording captures live notes; offline render excludes them (`recording.md`).
 - The `'live'` source tag keeps live voices separate from file voices on the same pitch (`audio-engine-core.md`).
-- Before the first live note, `ensureRunning()` must have run from a user gesture. Connect MIDI device and Play with keyboard are both gestures and call it.
+- Before the first live note, `ensureRunning()` must have run from a user gesture. Connect MIDI Device and Play with Keyboard are both gestures and call it.
 - `liveAllOff()` runs on: device disconnect, keyboard toggle off, window `blur`, `visibilitychange` to hidden, and `releaseAll()` (`midi-playback-scheduling.md`).
 
 ## Web MIDI
@@ -61,7 +61,7 @@ function liveAllOff() {
 | Safari / iOS | Not supported. |
 
 - Secure contexts only (HTTPS or `localhost`).
-- Feature detection: `'requestMIDIAccess' in navigator`. When absent, the Connect MIDI device control is not rendered.
+- Feature detection: `'requestMIDIAccess' in navigator`. When absent, the Connect MIDI Device control is not rendered.
 
 ### Requesting access
 ```ts
@@ -85,7 +85,7 @@ async function connectMidi() {
 }
 function attach(input: MIDIInput) { input.onmidimessage = onMidiMessage; }   // setting onmidimessage opens the port
 ```
-- Called only from the Connect MIDI device button, never on page load.
+- Called only from the Connect MIDI Device button, never on page load.
 - All connected inputs and all 16 channels feed the live layer.
 - `attach` is idempotent: assigning `onmidimessage` again replaces the handler.
 
@@ -114,7 +114,7 @@ function onMidiMessage(e: MIDIMessageEvent) {
 
 ## Computer keyboard
 ### Activation
-- **Play with keyboard** toggle (`aria-pressed`), off by default.
+- **Play with Keyboard** toggle (`aria-pressed`), off by default.
 - Hidden on touch-only devices: `matchMedia('(hover: none) and (pointer: coarse)')`.
 - Turning it on calls `ensureRunning()`. Turning it off calls `liveAllOff()`.
 

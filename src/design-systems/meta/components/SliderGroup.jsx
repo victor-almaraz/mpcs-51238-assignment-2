@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useRef } from 'react';
 import { cx, focusRing } from '../classes';
+import ValueField from './ValueField';
 
 const PAGE = 0.1;
 /** Pointer positions this far outside every bar (px) are ignored; equals the gap. */
@@ -24,16 +25,24 @@ function defaultValueText(v) {
   return `${Math.round(v * 100)} %`;
 }
 
+function defaultFieldText(v) {
+  return String(Math.round(v * 100));
+}
+
 /**
- * Row of custom vertical sliders (harmonic bars), values 0–1.
- * Fill heights are written to a --level CSS variable through refs.
+ * Row of custom vertical sliders (harmonic bars), values 0–1. Columns share the width,
+ * up to 32 px per bar. Fill heights are written to a --level CSS variable through refs.
+ * With `onEditValue(i, text)` a row of ValueFields (showing `fieldText(v)`) sits under the
+ * bars, outside the pointer-capturing group so the fields keep normal text input.
  */
 export default function SliderGroup({
   label,
   values,
   onChange,
+  onEditValue,
   itemLabel = defaultItemLabel,
   valueText = defaultValueText,
+  fieldText = defaultFieldText,
   disabled = false,
   step = 0.01,
   className,
@@ -133,13 +142,13 @@ export default function SliderGroup({
     commit(i, next);
   }
 
-  return (
+  const group = (
     <div
       ref={ref}
       role="group"
       aria-label={label}
       className={cx(
-        'flex touch-none gap-2 select-none',
+        'flex w-full touch-none gap-2 select-none',
         disabled && 'cursor-not-allowed opacity-40',
         className,
       )}
@@ -151,7 +160,7 @@ export default function SliderGroup({
       {...rest}
     >
       {values.map((v, i) => (
-        <div key={i} className="flex shrink-0 flex-col items-center gap-1">
+        <div key={i} className="flex min-w-0 flex-1 flex-col items-center gap-1">
           <div
             ref={(el) => {
               barRefs.current[i] = el;
@@ -167,7 +176,7 @@ export default function SliderGroup({
             aria-disabled={disabled ? 'true' : undefined}
             onKeyDown={(e) => handleKeyDown(e, i)}
             className={cx(
-              'relative h-30 w-8 overflow-hidden rounded-ds border border-border-strong bg-surface',
+              'relative h-30 w-full max-w-8 overflow-hidden rounded-ds border border-border-strong bg-surface',
               !disabled && 'cursor-ns-resize',
               focusRing,
             )}
@@ -180,5 +189,26 @@ export default function SliderGroup({
         </div>
       ))}
     </div>
+  );
+
+  if (!onEditValue) return group;
+
+  return (
+    <>
+      {group}
+      <div className="flex w-full gap-2">
+        {values.map((v, i) => (
+          <div key={i} className="flex min-w-0 flex-1 justify-center">
+            <ValueField
+              label={`${itemLabel(i)} value`}
+              display={fieldText(v)}
+              onCommit={(text) => onEditValue(i, text)}
+              disabled={disabled}
+              className="w-full max-w-10 text-center"
+            />
+          </div>
+        ))}
+      </div>
+    </>
   );
 }

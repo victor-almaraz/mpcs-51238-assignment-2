@@ -41,7 +41,7 @@ export function loadWorklets(ctx: BaseAudioContext): Promise<void> {
 - `VERSION` is incremented whenever a processor changes, because Vercel caches static assets.
 - Failure handling:
   - `safety-limiter` fails: the fallback stage is used (`audio-safety.md`).
-  - `ks-processor` fails: the Pluck option is disabled in the Add synth menu with "Pluck unavailable in this browser"; other widgets work.
+  - `ks-processor` fails: the Pluck option is disabled in the Add Synth menu with "Pluck unavailable in this browser"; other widgets work.
   - `recorder` fails: Record is disabled with the reason; offline render is unaffected.
 - The Pluck widget shows "Loading pluck engine…" until loading resolves.
 

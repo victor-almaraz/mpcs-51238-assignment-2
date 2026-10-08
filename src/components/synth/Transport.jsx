@@ -5,17 +5,19 @@ import { RECORD_MAX_SECONDS } from '@/audio/recording/recorder';
 import MasterSection from './MasterSection';
 import RecordControls from './RecordControls';
 import SongControls from './SongControls';
+import LiveInputControls from './LiveInputControls';
 import { formatClock, formatClock2 } from './format';
 import { rowInner, rowPad } from './layout';
 
 const PEAK_HOLD_S = 1;
 
 /**
- * Master group (Record, master volume, meter, Limit badge, Panic) and, once a MIDI file is
- * loaded, the Song group, in one component (layout-and-responsive.md "Transport placement").
- * Mobile: Master is a fixed two-row bottom bar and Song stays in flow under the header.
- * Desktop (lg): both groups sit in one sticky bar under the header, Master first so it
- * does not move when a song appears. `fileMenu` is always the last item.
+ * All meta controls in one bordered band (layout-and-responsive.md "Transport placement"):
+ * the Master group (Record, master volume, meter, Limit badge, Panic), the Song group once
+ * a MIDI file is loaded, `fileMenu`, and the live-input row last.
+ * Mobile: Master is a fixed two-row bottom bar; Song, the menu and live input stay in flow
+ * under the header. Desktop (lg): one sticky bar, Master first so it does not move when a
+ * song appears, the menu at the right end of the first row, live input on its own row.
  * Position, meter, Limit badge and recording time are written to the DOM once per animation
  * frame; audio is never driven from rAF.
  */
@@ -24,8 +26,26 @@ export default function Transport({ session, ui, song, songName, readingMidi, fi
   const meterRef = useRef(null);
   const limitRef = useRef(null);
   const elapsedRef = useRef(null);
+  const barRef = useRef(null);
   const duration = song ? song.durationSeconds : 0;
   const running = ui.audioState === 'running';
+
+  // Publishes the mobile bottom bar's height as --bottom-bar-h so toasts sit above it.
+  useEffect(() => {
+    const el = barRef.current;
+    const root = document.documentElement;
+    const publish = () => {
+      const fixed = getComputedStyle(el).position === 'fixed';
+      root.style.setProperty('--bottom-bar-h', `${fixed ? el.offsetHeight : 0}px`);
+    };
+    publish();
+    const observer = new ResizeObserver(publish);
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty('--bottom-bar-h');
+    };
+  }, []);
 
   useEffect(() => {
     if (!session) return undefined;
@@ -61,10 +81,10 @@ export default function Transport({ session, ui, song, songName, readingMidi, fi
       aria-label="Transport"
       aria-busy={readingMidi || undefined}
       onKeyDown={onKeyDown}
-      className={`border-border bg-surface ${rowPad} lg:sticky lg:top-0 lg:z-30 lg:border-b lg:py-2`}
+      className={`border-b border-border bg-surface ${rowPad} pb-3 lg:sticky lg:top-0 lg:z-30 lg:py-2`}
     >
       <div className={`${rowInner} flex flex-col gap-2 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-6`}>
-        <div className={`fixed inset-x-0 bottom-0 z-30 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border bg-surface ${rowPad} pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:static lg:z-auto lg:flex-nowrap lg:gap-6 lg:border-0 lg:p-0`}>
+        <div ref={barRef} className={`fixed inset-x-0 bottom-0 z-30 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border bg-surface ${rowPad} pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:static lg:z-auto lg:flex-nowrap lg:gap-6 lg:border-0 lg:p-0`}>
           <div className="order-1 flex min-w-0 flex-1 flex-wrap items-center gap-2 lg:order-none lg:flex-none">
             <RecordControls
               ui={ui}
@@ -77,13 +97,16 @@ export default function Transport({ session, ui, song, songName, readingMidi, fi
         </div>
         {/* Mobile: Song and the menu share the in-flow row under the header. lg: `contents`
             makes both direct items of the bar, and the menu is pushed to its right end. */}
-        <div className="flex items-start gap-2 py-2 lg:contents">
+        <div className="flex items-start gap-2 pt-2 lg:contents">
           {(song || readingMidi) && (
             <div className="min-w-0 flex-1 lg:flex-none xl:border-l xl:border-border xl:pl-6">
               <SongControls ui={ui} song={song} songName={songName} readingMidi={readingMidi} posRef={posRef} actions={actions} />
             </div>
           )}
           <div className="ml-auto shrink-0">{fileMenu}</div>
+        </div>
+        <div className="empty:hidden lg:basis-full">
+          <LiveInputControls ui={ui} actions={actions} />
         </div>
       </div>
     </section>

@@ -14,8 +14,16 @@ How each control is built, its states and keyboard support, how it maps to desig
 <input id={id} type="range" min={0} max={1000} step={1} value={u}
        aria-valuetext={formatHz(hz)}           // "2.0 kHz" instead of "500"
        onChange={...} className="flex-1 accent-neutral-900" />
-<output htmlFor={id} className="w-20 text-right text-sm tabular-nums">{formatHz(hz)}</output>
+<ValueField label="Cutoff value" display={formatHz(hz)} onCommit={edit} className="w-20 px-1 text-right" />
 ```
+- Typed values (parameters, harmonic levels and widget volume; not the master volume):
+  - The readout is a text field (`ValueField`, `inputmode="decimal"`, accessible name "{label} value"). It looks like the readout with a dashed underline, and gains a full border on hover or focus.
+  - Enter or leaving the field applies the text. After Enter, the field keeps focus with the new value selected.
+  - Units may be typed ("2.5 kHz", "2k", "250 ms", "1.5 s", "40 %", "×3", "−6 dB", "Off"). A bare number takes the unit currently shown, so "20" in a field showing "10 ms" means 20 ms. The minus sign (−) and decimal commas are accepted (`parseParam`, `parseVolume`).
+  - Values outside the range are clamped and snapped to the step, the same as the slider (`coerceParam`, `coerceVolume`). Unreadable text is ignored, and the field shows the current value again.
+  - Escape abandons the edit. It is not consumed, so it still triggers Panic (`audio-safety.md`).
+  - Harmonic bars have a row of fields under the bars, in percent (0–100), one per bar.
+  - The master volume keeps a plain readout, so the master level changes only by deliberate slider movement.
 - Unit formatting:
   - Frequency: Hz below 1000 ("440 Hz"), kHz above ("2.0 kHz").
   - Time: values under 1 s as ms ("120 ms").
@@ -50,21 +58,20 @@ How each control is built, its states and keyboard support, how it maps to desig
 | Waveform / source | `<fieldset>` + `<input type="radio">` styled as segmented buttons | arrow keys move the selection natively |
 | Live (arm) | `<button aria-pressed>` chip, text "Live" with `aria-label="Live input to Subtractive 1"` | routing in `live-input.md` |
 | Mute / Solo | `<button aria-pressed>` chips, text "M"/"S" with `aria-label="Mute Subtractive 1"` | the label includes the widget instance name |
-| Remove | `<button aria-label="Remove Subtractive 1">` ✕ | no confirmation; "Undo" appears in the status region for 5 s, held in memory |
+| Remove | `<button aria-label="Remove Subtractive 1">` ✕ | no confirmation; the "Removed …" toast offers Undo while it is visible (`layout-and-responsive.md` "Status toasts"), held in memory |
 | Part | native `<select>` with a visible "Part" label | first option "All parts"; then `Song.parts` labels in order; disabled at "All parts" when no MIDI file is loaded |
-| Play with keyboard | `<button aria-pressed>` | off by default; while on, mapped letter keys play notes (`live-input.md`) |
-| Octave | two buttons ("Octave down", "Octave up") + `<output>` showing e.g. "C4" | buttons disabled at the range limits |
-| Connect MIDI device | `<button>` | requests Web MIDI access; replaced by device status text once connected |
+| Play with Keyboard | `<button aria-pressed>` | off by default; while on, mapped letter keys play notes (`live-input.md`) |
+| Octave | two buttons ("Octave Down", "Octave Up") + `<output>` showing e.g. "C4" | buttons disabled at the range limits |
+| Connect MIDI Device | `<button>` | requests Web MIDI access; replaced by device status text once connected |
 | Widget volume | native range, −60 to 0 dB in 0.5 dB steps, plus Off at the minimum | `aria-valuetext="−6.0 dB"` / "Off" (`audio-safety.md`) |
 | Master volume | native range, same taper, default −12 dB, max 0 dB | `aria-valuetext="−12.0 dB"`; muted state after Panic shown as text "Muted" |
 | Meter | `<meter>`-styled bar with peak and RMS, −60 to 0 dBFS; numeric peak as text | `role="img"` with `aria-label` updated at most once per second |
 | Limit badge | text "Limit" plus icon | shown while the pre-limiter peak exceeds the ceiling |
 | Panic | `<button aria-keyshortcuts="Escape">` with text "Panic" | behaviour in `audio-safety.md` |
-| Start notice | native `<dialog>` + `showModal()` | shown before the first audio start per session; button "Start audio" |
-| Level reduced banner | inline alert + "Restore level" button | sustained-level duck (`audio-safety.md`) |
+| Start notice | native `<dialog>` + `showModal()` | shown before the first audio start per session; button "Start Audio" |
+| Level reduced banner | inline alert + "Restore Level" button | sustained-level duck (`audio-safety.md`) |
 | Record, Format, Render to WAV, render progress, Cancel | see `recording.md` | — |
-| File menu (Load MIDI, Save patch, Load patch, Format) | APG menu button; file items open a visually hidden `<input type="file">` | the inputs are out of the tab order and `aria-hidden`; focus returns to the File button after a choice (`layout-and-responsive.md` "File menu") |
-| Confirm replace rack | native `<dialog>` + `showModal()` | focus moves into the dialog; `Esc` cancels; initial focus on "Cancel" |
+| File menu (Load MIDI, Save Patch, Load Patch, Format) | APG menu button; file items open a visually hidden `<input type="file">` | the inputs are out of the tab order and `aria-hidden`; focus returns to the File button after a choice (`layout-and-responsive.md` "File menu") |
 
 ## Interaction states (every interactive element)
 | State | Treatment (Tailwind) |
@@ -76,14 +83,14 @@ How each control is built, its states and keyboard support, how it maps to desig
 | Selected (aria-pressed / checked) | `aria-pressed:bg-neutral-900 aria-pressed:text-white`; radios `peer-checked:` |
 | Disabled | `disabled:opacity-40 disabled:cursor-not-allowed`; keep the label readable; explain why in nearby text |
 
-- Accent: `bg-indigo-600 text-white hover:bg-indigo-700` (design-system accent), on **Add synth only**.
+- Accent: `bg-indigo-600 text-white hover:bg-indigo-700` (design-system accent), on **Add Synth only**.
 
 ## Sizes and contrast
 - Target size:
   - WCAG 2.2 SC 2.5.8 (AA) requires targets of at least 24 × 24 CSS px, or 24 px spacing circles around smaller ones.
   - SC 2.5.5 (AAA) asks for 44 × 44.
 - Tailwind sizes:
-  - `min-h-11 min-w-11` (44 px) for Add synth, Play/Stop and the file buttons.
+  - `min-h-11 min-w-11` (44 px) for Add Synth, Play/Stop and the file buttons.
   - At least `min-h-6 min-w-6` (24 px) for chips and ✕; 32 px where space allows.
   - Slider thumbs: give the input at least `h-6`.
 - Contrast:
@@ -96,9 +103,9 @@ How each control is built, its states and keyboard support, how it maps to desig
 - Any playhead or level meter must stay correct without animation.
 
 ## Keyboard map
-- `Tab` order follows the DOM: header, transport (recording controls, master section, song controls, File menu), live-input controls, Add synth, then each widget (header, params, footer).
+- `Tab` order follows the DOM: header, transport band (recording controls, master section, song controls, File menu, live-input controls), Add Synth, then each widget (header, params, footer).
 - `Space`/`Enter` activate buttons. When focus is not in a text field, `Space` on the transport toggles play.
-- No global single-key shortcuts. Letter keys play notes only while Play with keyboard is on, and never when focus is in a text input, select or dialog.
+- No global single-key shortcuts. Letter keys play notes only while Play with Keyboard is on, and never when focus is in a text input, select or dialog.
 - `Escape` closes an open menu or dialog; otherwise it triggers Panic.
 
 ## Design-system mapping
@@ -107,41 +114,40 @@ How each control is built, its states and keyboard support, how it maps to desig
 | Widget | Card |
 | Widget title | Heading (card title) |
 | Live / Mute / Solo | Toggle chip (selected = pressed) |
-| Play with keyboard | Toggle button |
+| Play with Keyboard | Toggle button |
 | Waveform / Source | Radio group / segmented control |
 | Param slider + value | Slider with value label |
 | Harmonic bars | Slider group (custom) |
 | Part select (MIDI parts) | Select / list rows |
-| Add synth | Primary button + menu |
-| Save / Load / Load MIDI / Connect MIDI device / Render to WAV / Panic | Secondary buttons |
+| Add Synth | Primary button + menu |
+| Save / Load / Load MIDI / Connect MIDI Device / Render to WAV / Panic | Secondary buttons |
 | Record | Toggle button |
 | Master volume | Slider with value label |
 | Meter, Limit badge | Meter; Badge |
 | Render progress | Progress bar |
 | Start notice | Modal dialog |
 | Remove | Icon button (ghost) |
-| Replace-rack confirm | Modal dialog |
-| Status messages | Toast / inline alert |
+| Status messages | Toast |
 | Empty rack / no MIDI | Empty state |
 
 ## UI states catalogue
 | State | Trigger | UI |
 |---|---|---|
-| Empty: no synths | widgets.length === 0 | empty panel with Add synth |
+| Empty: no synths | widgets.length === 0 | empty panel with Add Synth |
 | Empty: no MIDI | no song | Song group hidden (no Play or Render to WAV); part selects disabled at "All parts" |
 | Empty: nothing armed | live note received, no widget armed | status "No synth is armed for live input" (once per session) |
 | Loading: parsing MIDI | file chosen | file button shows "Reading…", `aria-busy="true"` on the transport |
 | Loading: worklet | first Pluck added | Pluck card shows "Loading pluck engine…"; params disabled |
 | Error: malformed MIDI | `ParseError` | inline alert under the transport: "Couldn't read <name>: <reason>"; previous song kept |
 | Error: malformed patch | `PatchError` | alert: "Couldn't load patch: <reason>"; rack unchanged |
-| Error: audio blocked / interrupted | context not running after a gesture, or a statechange | banner "Audio is paused by the browser" + "Resume audio" button |
+| Error: audio blocked / interrupted | context not running after a gesture, or a statechange | banner "Audio is paused by the browser" + "Resume Audio" button |
 | Error: worklet unsupported | addModule rejects / no `audioWorklet` | Pluck option disabled in the menu with the reason |
 | Error: MIDI access denied | `requestMIDIAccess` rejects | alert "MIDI access was blocked"; Connect button stays available |
 | Error: device disconnected | input `state` becomes `disconnected` | status "<device> disconnected"; its held notes released |
 | Success: MIDI loaded | parse ok | "Loaded <name> — 6 parts, 3:10"; warnings count if any |
 | Error: audio fault | safety stage `fault` | assertive: "Audio fault — output muted and reset" |
 | Error: reduced safety mode | AudioWorklet unavailable | master section text "Reduced safety mode"; master max −6 dB |
-| Warning: level reduced | sustained-level duck | banner "Level reduced — sustained loud output" + "Restore level" |
+| Warning: level reduced | sustained-level duck | banner "Level reduced — sustained loud output" + "Restore Level" |
 | Muted after Panic | Panic | master shows "Muted" until the master volume is raised |
 | Recording and render states | — | listed in `recording.md` |
 | Success: device connected | MIDI access granted / device appears | device status "Connected: <name>" (or "2 devices") |

@@ -50,6 +50,9 @@ export function rackReducer(state, action) {
       widgets.splice(Math.min(action.index, widgets.length), 0, action.widget);
       return { widgets };
     }
+    case 'restoreAll':
+      // Undo of a patch load: the earlier widgets come back unchanged (ids, names, arming).
+      return { widgets: action.widgets };
     case 'update':
       return { widgets: state.widgets.map((w) => (w.id === action.id ? { ...w, ...action.fields } : w)) };
     case 'param': {

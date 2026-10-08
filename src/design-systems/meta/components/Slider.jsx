@@ -1,6 +1,7 @@
 'use client';
 
 import { cx, focusRing } from '../classes';
+import ValueField from './ValueField';
 
 function clamp(v, min, max) {
   return Math.min(max, Math.max(min, v));
@@ -9,7 +10,8 @@ function clamp(v, min, max) {
 /**
  * Labelled native range with a value readout.
  * PageUp/PageDown jump by `pageStep` (default 10 % of the range); Delete and
- * double-click call onReset. `className` goes on the row, other props on the input.
+ * double-click call onReset. With `onEditValue(text)` the readout is a ValueField the
+ * user can type into. `className` goes on the row, other props on the input.
  */
 export default function Slider({
   id,
@@ -19,6 +21,7 @@ export default function Slider({
   max,
   step = 1,
   onChange,
+  onEditValue,
   valueText,
   display,
   onReset,
@@ -81,9 +84,19 @@ export default function Slider({
         )}
         {...rest}
       />
-      <output htmlFor={id} aria-live="off" className="w-20 shrink-0 text-right text-sm tabular-nums">
-        {display ?? valueText ?? value}
-      </output>
+      {onEditValue ? (
+        <ValueField
+          label={`${label} value`}
+          display={String(display ?? valueText ?? value)}
+          onCommit={onEditValue}
+          disabled={disabled}
+          className="w-20 shrink-0 px-1 text-right"
+        />
+      ) : (
+        <output htmlFor={id} aria-live="off" className="w-20 shrink-0 text-right text-sm tabular-nums">
+          {display ?? valueText ?? value}
+        </output>
+      )}
       {onReset ? (
         <span id={helpId} className="sr-only">
           Press Delete or double-click to reset

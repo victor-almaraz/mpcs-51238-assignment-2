@@ -294,7 +294,7 @@ export class Session {
       this.releaseAll();
       this.onUi({ playing: false });
       this.setAudioState('failed');
-      this.message('Audio safety stage stopped. Restart audio to continue.', { assertive: true });
+      this.message('Audio safety stage stopped. Restart Audio to continue.', { assertive: true });
     }
   }
 

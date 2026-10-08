@@ -51,7 +51,7 @@ export function onContextState(fn) {
   return () => { listeners.delete(fn); };
 }
 
-/** Closes and forgets the context ("Restart audio"). The next gesture creates a new one. */
+/** Closes and forgets the context ("Restart Audio"). The next gesture creates a new one. */
 export function closeContext() {
   const c = ctx;
   if (!c) return Promise.resolve();

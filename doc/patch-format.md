@@ -76,7 +76,7 @@ function savePatch(state: RackState) {
 
 ## Load
 - Flow: `<input type="file" accept=".json,application/json">`, then `file.text()`, then `parsePatch`.
-- If the rack is not empty, open the confirm dialog ("Replace current rack?"; `controls-and-accessibility.md`) **before** applying.
+- No confirmation (GNOME HIG: undo over confirm). If the rack was not empty, the "Patch loaded" toast offers Undo while it is visible. Undo puts the earlier widgets back unchanged through the same patch-load ramp and shows "Previous rack restored".
 - Apply: `releaseAll()`, then the patch-load ramp in `audio-safety.md` (outputs to 0, rebuild widgets, ramp back). Loading never starts notes.
 - Reset `input.value = ''` after each load, so choosing the same file again still fires `change`.
 - States:

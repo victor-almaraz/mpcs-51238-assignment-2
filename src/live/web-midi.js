@@ -1,5 +1,5 @@
 // Web MIDI input (live-input.md). All inputs and all 16 channels feed the live layer.
-// The caller runs ensureRunning() inside the Connect MIDI device gesture before calling connectMidi().
+// The caller runs ensureRunning() inside the Connect MIDI Device gesture before calling connectMidi().
 
 export function isMidiSupported() {
   return typeof navigator !== 'undefined' && 'requestMIDIAccess' in navigator;

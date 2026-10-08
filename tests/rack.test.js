@@ -193,3 +193,10 @@ test('unknown actions return the same state', () => {
   const s = addAll('subtractive');
   assert.equal(rackReducer(s, { type: 'nope' }), s);
 });
+
+test('restoreAll brings back an earlier rack unchanged after a replace', () => {
+  const before = addAll('subtractive', 'fm');
+  const replaced = rackReducer(before, { type: 'replace', widgets: [{ type: 'additive' }] });
+  const r = rackReducer(replaced, { type: 'restoreAll', widgets: before.widgets });
+  assert.equal(r.widgets, before.widgets);
+});

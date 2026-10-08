@@ -14,7 +14,7 @@ export default function AddSynthMenu({ onAdd, pluckAvailable, className }) {
   }));
   return (
     <MenuButton
-      label="Add synth"
+      label="Add Synth"
       items={items}
       onSelect={onAdd}
       variant="primary"

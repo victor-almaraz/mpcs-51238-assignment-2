@@ -24,7 +24,7 @@ export function isTextEntry(el) {
   return !!el.isContentEditable;
 }
 
-/** Touch-only devices hide the Play with keyboard toggle. */
+/** Touch-only devices hide the Play with Keyboard toggle. */
 export function isTouchOnly() {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
   return window.matchMedia('(hover: none) and (pointer: coarse)').matches;

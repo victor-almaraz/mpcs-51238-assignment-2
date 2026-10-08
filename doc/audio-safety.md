@@ -109,7 +109,7 @@ Every `h[k]` with k ∈ [n−L, n] is ≤ `r[n−L]`, so `g[n] ≤ r[n−L]` and
 
 ### Sustained-level duck
 - The worklet tracks a one-pole mean-square estimate (τ = 3 s) of its input. Above −12 dBFS RMS it ramps a duck gain to −6 dB over 1 s and posts `{type:'duck'}`.
-- The UI shows "Level reduced — sustained loud output" with a "Restore level" button. The duck lifts only when the button sends `{type:'ack'}`.
+- The UI shows "Level reduced — sustained loud output" with a "Restore Level" button. The duck lifts only when the button sends `{type:'ack'}`.
 - The guard runs in the worklet so background-tab timer throttling does not affect it.
 
 ### Processor (`public/worklets/safety-limiter.js`)
@@ -255,7 +255,7 @@ export async function buildMasterBus(ctx: BaseAudioContext) {
 }
 ```
 - No widget output connects to `mixBus` until `buildMasterBus` resolves.
-- `onSafetyError` stops the transport, calls `releaseAll()` and shows "Restart audio", which closes the context and creates a new one on the next gesture.
+- `onSafetyError` stops the transport, calls `releaseAll()` and shows "Restart Audio", which closes the context and creates a new one on the next gesture.
 - Meters and the recorder attach to `safetyOut` (and `preMeter` to `masterGain`) only in an `AudioContext`, not in offline renders.
 
 ### Fallback without AudioWorklet

@@ -16,7 +16,7 @@ export default function StartNotice({ open, onStart, onCancel, silentSwitchNote 
         <>
           <Button onClick={onCancel}>Cancel</Button>
           <Button ref={startRef} variant="secondary" onClick={onStart}>
-            Start audio
+            Start Audio
           </Button>
         </>
       }

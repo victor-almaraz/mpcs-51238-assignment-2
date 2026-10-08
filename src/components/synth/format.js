@@ -56,3 +56,50 @@ export function formatClock2(seconds) {
   const s = Math.max(0, Math.floor(seconds));
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 }
+
+// ----- typed values (the editable value fields) -----
+
+// Suffixes accepted per PARAM_DEFS unit, as multipliers to the stored unit.
+const UNIT_SCALES = {
+  Hz: { hz: 1, k: 1000, khz: 1000 },
+  s: { s: 1, ms: 0.001 },
+  dB: { db: 1 },
+  ratio: { x: 1 },
+  index: {},
+  'per-s': { '/s': 1 },
+  fraction: { '%': 0.01 },
+};
+
+const NUMBER = /^([+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)\s*(.*)$/;
+
+/** "−2,5 kHz" → [−2.5, 'khz']; a leading × or x is dropped. Null when there is no number. */
+function splitNumber(text) {
+  const t = String(text).trim().toLowerCase().replace(/−/g, '-').replace(/,/g, '.').replace(/^[×x]\s*/, '');
+  const m = NUMBER.exec(t);
+  if (!m) return null;
+  const n = Number(m[1]);
+  return Number.isFinite(n) ? [n, m[2].trim()] : null;
+}
+
+/**
+ * Parses a typed value for `def` into its stored unit, or null when it cannot be read.
+ * A bare number takes the unit currently shown (`current`, e.g. "10 ms" makes "20" mean
+ * 20 ms). Range clamping and step snapping are left to coerceParam.
+ */
+export function parseParam(def, text, current = '') {
+  const typed = splitNumber(text);
+  if (!typed) return null;
+  const [n, written] = typed;
+  const unit = written || (splitNumber(current)?.[1] ?? '');
+  if (unit === '') return n;
+  const scale = (UNIT_SCALES[def.unit] ?? {})[unit];
+  return scale === undefined ? null : n * scale;
+}
+
+/** Parses a typed volume: "Off", "-inf" or "−∞" give −Infinity; otherwise dB. Null when unreadable. */
+export function parseVolume(text) {
+  const t = String(text).trim().toLowerCase().replace(/−/g, '-').replace(/\s*db$/, '');
+  if (t === 'off' || t === '-inf' || t === '-∞') return -Infinity;
+  const typed = splitNumber(t);
+  return typed && typed[1] === '' ? typed[0] : null;
+}

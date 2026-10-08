@@ -19,5 +19,7 @@ export { default as SegmentedControl } from './components/SegmentedControl';
 export { default as Slider } from './components/Slider';
 export { default as SliderGroup } from './components/SliderGroup';
 export { default as TextOutput } from './components/TextOutput';
+export { default as Toast } from './components/Toast';
 export { default as ToggleButton } from './components/ToggleButton';
+export { default as ValueField } from './components/ValueField';
 export { default as VisuallyHidden } from './components/VisuallyHidden';

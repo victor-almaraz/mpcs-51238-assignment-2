@@ -457,8 +457,8 @@ export function wavFilename(kind: 'live' | 'render', sampleRate: number, format:
   return `${base}-${kind}-${stamp}-${rate}-${format === 'float32' ? 'f32' : '16'}.wav`;
 }
 ```
-- The success state keeps the `Blob` (not the URL) for "Download again"; each click creates and later revokes a new object URL.
-- A programmatic `a.click()` after a long asynchronous encode may be blocked outside transient user activation in some browsers; the "Download again" button covers that case.
+- The success state keeps the `Blob` (not the URL) for "Download Again"; each click creates and later revokes a new object URL.
+- A programmatic `a.click()` after a long asynchronous encode may be blocked outside transient user activation in some browsers; the "Download Again" button covers that case.
 
 ## Offline render (`src/audio/recording/offline-render.ts`)
 
@@ -556,7 +556,7 @@ Record and its indicator sit in the transport's Master group. Render to WAV and 
 |---|---|
 | Record | `<button aria-pressed>` labelled "Record", icon plus text. Disabled while rendering. |
 | Recording indicator | Text "REC" and elapsed/limit `02:13 / 10:00`. The dot glyph is `aria-hidden`. |
-| Format | Two `menuitemradio` items in the File menu: "WAV 16-bit" (default), "WAV 32-bit float". Shared by both modes; disabled during capture. |
+| Format | Two `menuitemradio` items in the File menu: "WAV 16-Bit" (default), "WAV 32-Bit Float". Shared by both modes; disabled during capture. |
 | Peak | Text "Peak −3.2 dB" from chunk `peak`; "Clip" badge when `clipped`. |
 | Render to WAV | Enabled only when a MIDI file is loaded; disabled while recording. |
 | Render progress | `<progress max="100" aria-label="Render progress">` with text "Rendering 42 %"; no `value` (indeterminate) without `suspend`. |
@@ -567,7 +567,7 @@ Record and its indicator sit in the transport's Master group. Render to WAV and 
 | Recording | "Recording" |
 | Saving | "Saving WAV…" |
 | Rendering | "Rendering 42 %" / "Rendering…" |
-| Success | "Download started: {filename}", with "Download again" |
+| Success | "Download started: {filename}", with "Download Again" |
 | Maximum length | "Recording stopped at the 10:00 limit. Download started." |
 | Interrupted | "Recording stopped: audio was interrupted. Captured audio was saved." |
 | Out of memory | "Not enough memory to create the WAV file." |
