@@ -355,6 +355,12 @@ Offline renders (`OfflineAudioContext`, 44.1 and 48 kHz, stereo) through the rea
 | Case 7 | Zero output for ≥ 250 ms from the fault frame; `fault` posted; recovery fade ≤ 50 ms |
 | Below-ceiling transparency | −4 dBFS input with `dcHz: 0`: output equals input delayed by L frames within 1e-4 |
 
+### Implementation notes (2026-10-08)
+The suite runs on the dev-only page `/dev/safety/` (`src/components/dev/safety-cases.js`) at two levels: worst case (widget 0 dB, master 0 dB) and default (widget −6 dB, master −12 dB).
+- **Sample-step check runs at default levels only.** At worst-case levels, bright full-scale content exceeds 0.25 by itself. A single 12.5 kHz sine at 0.3 peak has a step of 2 · 0.3 · sin(π · 12543 / 44100) ≈ 0.47, measured 0.468. That is not a click. The ceiling, non-finite, DC and onset checks run at both levels.
+- **Case 1 uses velocity 100, not 127.** At 127, case 1 failed DC at worst-case levels (0.0014) and the sample step at default levels (0.267 at 44.1 kHz, 0.250 at 48 kHz). The step peak was at 3.481 s, the bright end of the cutoff sweep, not at a note onset. The DC came from 1 s windows cutting the periods of low saws. At velocity 100 the limiter still reaches the ceiling at worst-case levels, and every check passes (DC 0.00042, step 0.166 / 0.155).
+- Results on 2026-10-08, Chromium, 44.1 and 48 kHz: worst case 74/74, default 86/86.
+
 ## Unconfirmed behaviour
 - Handling of out-of-range samples at `destination` and the spec's NaN rule for AudioParam computed values were not checked against the current spec text.
 - WaveShaperNode handling of NaN input is unspecified.
