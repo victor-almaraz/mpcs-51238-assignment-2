@@ -28,7 +28,9 @@ type ParamDef = {
   - Frequency-like (log): `v = min * (max/min) ** u`.
   - Times (cubic): `v = min + (max-min) * u ** 3`.
   - Linear: `v = min + (max-min) * u`.
-- Keep each widget to roughly 4–6 params so it fits a ~360 px card (`layout-and-responsive.md`).
+- Keep each widget to at most 8 controls so it fits a ~360 px card (`layout-and-responsive.md`); `tests/param-defs.test.js` checks the limit.
+- A param added later defaults to the value that reproduces the earlier sound (filter env 0, sustain 1, fine 0, vibrato 0, pick position 0, pitch spread 0, position 0.5). Older patches omit it, so they still sound the same (`patch-format.md`). Exception: the pluck release replaced a fixed, pitch-dependent mute, so note-offs on pluck sound slightly different.
+- Subtractive, FM and additive share the ADSR envelope params (attack, decay, sustain, release; `audio-engine-core.md` "Click-free envelopes").
 
 ## CPU summary (relative per voice)
 From cheapest to most expensive:

@@ -97,6 +97,11 @@ export function parsePatch(text, song) {
       if (present && !sameValue(value, src[def.name])) warnings.push(`${prefix}${def.label} adjusted`);
       params[def.name] = value;
     }
+    // Sample audio is never stored in patches (patch-format.md); the name says which to load.
+    if (type === 'granular' && params.source === 'sample') {
+      const name = typeof w.sampleName === 'string' && w.sampleName ? ` '${w.sampleName.slice(0, MAX_LABEL_LENGTH)}'` : '';
+      warnings.push(`${prefix}sample${name} is not stored in patches; load it again`);
+    }
 
     const volumeDb = coerceVolume(w.volumeDb, VOLUME.widgetDefault);
     if (hasOwn(w, 'volumeDb') && !(w.volumeDb === 'off' ? volumeDb === -Infinity : volumeDb === w.volumeDb)) {

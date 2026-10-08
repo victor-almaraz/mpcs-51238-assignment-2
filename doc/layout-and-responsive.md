@@ -55,6 +55,8 @@ Page structure, the rack grid, widget anatomy and responsive behaviour at 390 px
   - Header: identity and actions.
   - Params: sound-shaping controls. Use `<fieldset>`/`<legend>` for radio groups.
   - Footer: routing and level, separate from the params.
+- Params order: sound source first, then shaping, then the envelope (attack, decay, sustain, release), then modulation. At most 8 controls per card (`synthesis-conventions.md`).
+- Granular: only while the File source is selected, a row under Source, aligned with the controls, holds "Load Sample…" (a `FileButton`, accepting `audio/*`) and the loaded file's name (truncated, full name in `title`), or "No sample loaded: silent". A loaded sample is kept while another source is selected. Load errors use the error banner ("Couldn't load {file}: {reason}"); success shows a toast ("Loaded sample {name} (1.8 s)").
 - Card style:
   - `rounded-lg border border-neutral-300 bg-white p-3 md:p-4` (12 px padding on phones keeps the param rows from truncating at 360 px).
   - No shadow stacks, gradients, knobs, screws or textures.

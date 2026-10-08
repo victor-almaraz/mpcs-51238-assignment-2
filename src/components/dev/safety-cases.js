@@ -6,6 +6,7 @@ import { buildEngine } from '../../audio/engine.js';
 import { loadWorklets } from '../../audio/worklet-loader.js';
 import { SAFETY } from '../../audio/master-bus.js';
 import { defaultParams } from '../../audio/synths/param-defs.js';
+import { conditionSample } from '../../audio/sample.js';
 
 const SECONDS = 4;
 const CEILING = Math.pow(10, -1 / 20);
@@ -139,7 +140,79 @@ const CASES = [
       dc.start(0);
     },
   },
+  // Cases 9–12 cover the parameters added after the doc's case table (filter envelope, FM
+  // fine, vibrato, pick position and release, granular position and pitch spread, user samples).
+  {
+    id: 9,
+    name: 'Subtractive, 16 voices, 6-octave filter env at max resonance, retriggered every 250 ms',
+    widgets: () => [widget('subtractive', {
+      params: { cutoff: 40, resonance: 20, envAmount: 6, attack: 0.002, decay: 0.3, sustain: 0.5, release: 0.05 },
+    })],
+    play(ctx, engine) {
+      const inst = engine.targets()[0].inst;
+      for (let t = 0; t < SECONDS - 0.5; t += 0.25) {
+        for (let k = 0; k < 16; k++) {
+          inst.noteOn(48 + k * 3, 100, t, 'file');
+          inst.noteOff(48 + k * 3, t + 0.2, 'file');
+        }
+      }
+    },
+  },
+  {
+    id: 10,
+    name: 'FM at max index, ratio 12 + fine 0.5, decay to sustain 0, low and highest notes',
+    widgets: () => [widget('fm', { params: { index: 20, ratio: 12, fine: 0.5, indexDecay: 4, decay: 1, sustain: 0 } })],
+    play(ctx, engine) {
+      const inst = engine.targets()[0].inst;
+      for (const p of [24, 60, 127]) inst.noteOn(p, 127, 0, 'file');
+    },
+  },
+  {
+    id: 11,
+    name: 'Additive, all partials at max, 16 voices, vibrato 100 cents at 12 Hz',
+    widgets: () => [widget('additive', { params: { harmonics: [1, 1, 1, 1, 1, 1, 1, 1], vibratoDepth: 100, vibratoRate: 12 } })],
+    play(ctx, engine) {
+      const inst = engine.targets()[0].inst;
+      for (let k = 0; k < 16; k++) inst.noteOn(40 + k * 3, 127, 0, 'file');
+    },
+  },
+  {
+    id: 12,
+    name: 'Pluck, pick position 0.5, release 2 s, 16 voices retriggered every 10 ms with note-offs',
+    widgets: () => [widget('pluck', { params: { decay: 10, damping: 0, brightness: 1, pickPosition: 0.5, release: 2 } })],
+    play(ctx, engine) {
+      const inst = engine.targets()[0].inst;
+      for (let i = 0, t = 0; t < SECONDS - 0.5; i++, t += 0.01) {
+        const p = i % 2 ? 127 : 21;
+        inst.noteOn(p, 127, t, 'file');
+        inst.noteOff(p, t + 0.005, 'file');
+      }
+    },
+  },
+  {
+    id: 13,
+    name: 'Granular user sample (full-scale square), 4 high voices, max density, size, spray and pitch spread',
+    widgets: () => [widget('granular', {
+      params: { source: 'sample', grainSize: 0.25, density: 60, spray: 1, position: 1, pitchSpread: 1200, attack: 0.002 },
+      sample: { name: 'square.wav', buffer: squareSample(), seconds: 2 },
+    })],
+    play(ctx, engine) {
+      const inst = engine.targets()[0].inst;
+      for (const p of [84, 91, 96, 103]) inst.noteOn(p, 127, 0, 'file');
+      engine.pump(SECONDS);
+    },
+  },
 ];
+
+/** A 2 s full-scale 100 Hz square with a 0.3 DC offset, conditioned like a user's file. */
+function squareSample() {
+  const sr = 48000;
+  const raw = Float32Array.from({ length: 2 * sr }, (_, i) => 0.3 + (Math.floor((i * 200) / sr) % 2 ? 1 : -1));
+  const { data } = conditionSample([raw], sr);
+  const buf = new AudioBuffer({ length: data.length, numberOfChannels: 1, sampleRate: sr });
+  buf.copyToChannel(data, 0);
+  return buf;
+}
 
 function analyse(buf, caseId, extra, checkSteps) {
   const sr = buf.sampleRate;
@@ -169,7 +242,7 @@ function analyse(buf, caseId, extra, checkSteps) {
     { name: 'DC per 1 s window ≤ 1e-3', value: worstDc, pass: worstDc <= 1e-3 },
     { name: 'onset peak (128 frames) ≤ 0.02', value: onset, pass: onset <= 0.02 },
   ];
-  if (checkSteps && caseId <= 6) checks.push({ name: `sample step ≤ ${MAX_STEP} (largest at ${maxStepAt.toFixed(3)} s)`, value: maxStep, pass: maxStep <= MAX_STEP });
+  if (checkSteps && (caseId <= 6 || caseId >= 9)) checks.push({ name: `sample step ≤ ${MAX_STEP} (largest at ${maxStepAt.toFixed(3)} s)`, value: maxStep, pass: maxStep <= MAX_STEP });
   if (caseId === 7) {
     // The NaN sample enters the limiter at f0; the rest of that render quantum, then 250 ms,
     // are silent, followed by a 50 ms linear fade-in back to the steady tone.

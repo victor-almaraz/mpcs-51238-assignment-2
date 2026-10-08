@@ -3,7 +3,10 @@
 //
 // kind: 'number' | 'enum' | 'array'
 // scale: 'lin' | 'log' | 'pow3' | 'radio'
-// unit: 'Hz' | 's' | 'dB' | 'ratio' | 'index' | 'per-s' | 'fraction' | ''
+// unit: 'Hz' | 's' | 'dB' | 'ratio' | 'offset' | 'index' | 'per-s' | 'fraction' | 'oct' | 'cents' | ''
+//
+// New params default to the value that reproduces the sound from before they existed, so
+// older patches (which omit them) sound the same (patch-format.md).
 
 export const SYNTH_TYPES = ['subtractive', 'fm', 'additive', 'pluck', 'granular'];
 
@@ -17,6 +20,9 @@ export const SYNTH_INFO = {
 
 const attack = (def) => ({ name: 'attack', label: 'Attack', unit: 's', kind: 'number', min: 0.002, max: 2, default: def, scale: 'pow3' });
 const release = (def) => ({ name: 'release', label: 'Release', unit: 's', kind: 'number', min: 0.01, max: 4, default: def, scale: 'pow3' });
+// ADSR decay and sustain (audio-engine-core.md "Envelopes"). Sustain 1 is the plain AR shape.
+const decay = (def) => ({ name: 'decay', label: 'Decay', unit: 's', kind: 'number', min: 0.01, max: 4, default: def, scale: 'pow3' });
+const sustain = () => ({ name: 'sustain', label: 'Sustain', unit: 'fraction', kind: 'number', min: 0, max: 1, default: 1, scale: 'lin', step: 0.01 });
 
 export const PARAM_DEFS = {
   subtractive: [
@@ -24,33 +30,51 @@ export const PARAM_DEFS = {
       options: ['sine', 'sawtooth', 'square', 'triangle'], optionLabels: ['Sine', 'Saw', 'Square', 'Tri'], default: 'sawtooth' },
     { name: 'cutoff', label: 'Cutoff', unit: 'Hz', kind: 'number', min: 40, max: 16000, default: 2000, scale: 'log' },
     { name: 'resonance', label: 'Resonance', unit: 'dB', kind: 'number', min: 0, max: 20, default: 1, scale: 'lin' },
+    { name: 'envAmount', label: 'Filter env', unit: 'oct', kind: 'number', min: 0, max: 6, default: 0, scale: 'lin', step: 0.1 },
     attack(0.01),
+    decay(0.3),
+    sustain(),
     release(0.3),
   ],
   fm: [
     { name: 'ratio', label: 'Ratio', unit: 'ratio', kind: 'number', min: 0.5, max: 12, default: 2, scale: 'lin', step: 0.5 },
+    { name: 'fine', label: 'Fine', unit: 'offset', kind: 'number', min: -0.5, max: 0.5, default: 0, scale: 'lin', step: 0.01 },
     { name: 'index', label: 'Index', unit: 'index', kind: 'number', min: 0, max: 20, default: 3, scale: 'lin', step: 0.1 },
     { name: 'indexDecay', label: 'Index decay', unit: 's', kind: 'number', min: 0.01, max: 4, default: 0.5, scale: 'pow3' },
     attack(0.005),
+    decay(0.5),
+    sustain(),
     release(0.4),
   ],
   additive: [
     { name: 'harmonics', label: 'Harmonics', unit: 'fraction', kind: 'array', length: 8, min: 0, max: 1, step: 0.01,
       default: [1, 0.5, 0.33, 0.25, 0.2, 0.17, 0.14, 0.12], scale: 'lin' },
     attack(0.02),
+    decay(0.5),
+    sustain(),
     release(0.5),
+    { name: 'vibratoRate', label: 'Vibrato rate', unit: 'Hz', kind: 'number', min: 0.5, max: 12, default: 5, scale: 'log' },
+    { name: 'vibratoDepth', label: 'Vibrato', unit: 'cents', kind: 'number', min: 0, max: 100, default: 0, scale: 'lin', step: 1 },
   ],
   pluck: [
     { name: 'damping', label: 'Damping', unit: 'fraction', kind: 'number', min: 0, max: 1, default: 0.5, scale: 'lin', step: 0.01 },
     { name: 'brightness', label: 'Brightness', unit: 'fraction', kind: 'number', min: 0, max: 1, default: 0.7, scale: 'lin', step: 0.01 },
+    // Fraction of the string length from the bridge; 0 plucks at the bridge (no comb).
+    { name: 'pickPosition', label: 'Pick position', unit: 'fraction', kind: 'number', min: 0, max: 0.5, default: 0, scale: 'lin', step: 0.01 },
     { name: 'decay', label: 'Decay', unit: 's', kind: 'number', min: 0.2, max: 10, default: 2, scale: 'pow3' },
+    // T60 after note-off (string muting); never longer than the decay.
+    { name: 'release', label: 'Release', unit: 's', kind: 'number', min: 0.02, max: 2, default: 0.1, scale: 'pow3' },
   ],
   granular: [
     { name: 'source', label: 'Source', unit: '', kind: 'enum', scale: 'radio',
-      options: ['saw', 'noise', 'chord'], optionLabels: ['Saw', 'Noise', 'Chord'], default: 'saw' },
+      options: ['saw', 'noise', 'chord', 'sample'], optionLabels: ['Saw', 'Noise', 'Chord', 'File'], default: 'saw' },
+    { name: 'position', label: 'Position', unit: 'fraction', kind: 'number', min: 0, max: 1, default: 0.5, scale: 'lin', step: 0.01 },
     { name: 'grainSize', label: 'Grain size', unit: 's', kind: 'number', min: 0.01, max: 0.25, default: 0.06, scale: 'log' },
     { name: 'density', label: 'Density', unit: 'per-s', kind: 'number', min: 2, max: 60, default: 20, scale: 'log' },
     { name: 'spray', label: 'Spray', unit: 'fraction', kind: 'number', min: 0, max: 1, default: 0.2, scale: 'lin', step: 0.01 },
+    { name: 'pitchSpread', label: 'Pitch spread', unit: 'cents', kind: 'number', min: 0, max: 1200, default: 0, scale: 'lin', step: 1 },
+    attack(0.05),
+    release(0.4),
   ],
 };
 

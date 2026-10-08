@@ -99,6 +99,11 @@ interface Instrument {
 - Attack:
   - `g.setValueAtTime(0, t); g.linearRampToValueAtTime(peak, t + attack)`.
   - Minimum attack 0.002 s.
+- Decay and sustain (subtractive, FM and additive; ADSR):
+  - With sustain < 1, `g.setTargetAtTime(sustain * peak, t + attack, decay / 3)` follows the attack. Sustain 1 (the default) is the plain AR shape.
+  - Sustain is clamped to [0, 1], so the peak is always the velocity gain; decay only lowers the level.
+  - The envelope model adds `sustain` and `decayTau`; `envValueAt` returns `s·peak + (peak − s·peak)·e^(−(t − tA)/decayTau)` after the attack, so a release during the decay starts from the right level in the Firefox fallback too.
+  - Granular and pluck keep their own shapes (AR bus envelope; T60 decay and release in the worklet).
 - Release:
   - `setTargetAtTime(0, tOff, release / 3)`. Each time constant moves another 63.2% toward the target; a third of the desired duration gets ~95% of the way.
   - Then `stop(tOff + release * 1.5 + 0.05)`.
@@ -115,9 +120,12 @@ function holdAt(p: AudioParam, t: number, valueAtT: number) {
   if (typeof (p as any).cancelAndHoldAtTime === 'function') (p as any).cancelAndHoldAtTime(t);
   else { p.cancelScheduledValues(t); p.setValueAtTime(valueAtT, t); }
 }
-function envValueAt(v: Voice, t: number) {
+function envValueAt(v: Voice, t: number) {          // before a release (see envelope.js)
   const x = (t - v.start) / v.attack;
-  return x >= 1 ? v.peak : Math.max(0, x) * v.peak;  // linear attack model
+  if (x < 1) return Math.max(0, x) * v.peak;           // linear attack
+  const s = v.sustain ?? 1;
+  if (s >= 1) return v.peak;
+  return s * v.peak + (1 - s) * v.peak * Math.exp(-(t - v.start - v.attack) / v.decayTau);
 }
 // release:
 holdAt(v.env.gain, tOff, envValueAt(v, tOff));

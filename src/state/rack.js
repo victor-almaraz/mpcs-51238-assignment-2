@@ -32,6 +32,7 @@ export function createWidget(type, widgets, fields = {}) {
     requestedPart: fields.requestedPart ?? null,
     partLabel: fields.partLabel ?? null,
     params: fields.params ?? defaultParams(type),
+    sample: null,                      // granular only: { name, buffer, seconds }; never in patches
   };
 }
 
@@ -53,6 +54,13 @@ export function rackReducer(state, action) {
     case 'restoreAll':
       // Undo of a patch load: the earlier widgets come back unchanged (ids, names, arming).
       return { widgets: action.widgets };
+    case 'sample':
+      // A loaded file becomes the granular source at once.
+      return {
+        widgets: state.widgets.map((w) => (w.id === action.id && w.type === 'granular'
+          ? { ...w, sample: action.sample, params: { ...w.params, source: 'sample' } }
+          : w)),
+      };
     case 'update':
       return { widgets: state.widgets.map((w) => (w.id === action.id ? { ...w, ...action.fields } : w)) };
     case 'param': {

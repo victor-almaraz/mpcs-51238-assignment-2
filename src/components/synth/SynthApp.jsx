@@ -8,6 +8,7 @@ import { audioSessionSupported } from '@/audio/context';
 import { parseMidi, MAX_MIDI_BYTES } from '@/midi/parse';
 import { parsePatch, resolvePart } from '@/patch/validate';
 import { readPatchFile, savePatch } from '@/patch/file-io';
+import { decodeSample, SampleError, MAX_SAMPLE_SECONDS } from '@/audio/sample';
 import { initialRack, rackReducer } from '@/state/rack';
 import { Session } from '@/state/session';
 import Transport from './Transport';
@@ -174,6 +175,19 @@ export default function SynthApp() {
     arm: (id, armed) => {
       if (!armed) session?.disarm(id);
       dispatch({ type: 'update', id, fields: { armed } });
+    },
+    /** Decodes and conditions a granular sample (sample.js); it becomes the widget's source. */
+    loadSample: (id, file) => {
+      decodeSample(file)
+        .then(({ buffer, name, seconds, truncated }) => {
+          dispatch({ type: 'sample', id, sample: { name, buffer, seconds } });
+          showAlert({ key: 'sample', text: null });
+          say(`Loaded sample ${name} (${seconds.toFixed(1)} s${truncated ? `, first ${MAX_SAMPLE_SECONDS} s kept` : ''})`);
+        })
+        .catch((err) => {
+          const reason = err instanceof SampleError ? err.message : 'unknown error';
+          showAlert({ key: 'sample', text: `Couldn't load ${file.name}: ${reason}` });
+        });
     },
     remove: (id) => {
       const index = rack.widgets.findIndex((w) => w.id === id);

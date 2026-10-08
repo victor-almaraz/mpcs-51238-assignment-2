@@ -182,3 +182,13 @@ test('readPatchFile rejects files over 256 KB before reading', async () => {
   assert.equal(read, false);
   assert.equal(await readPatchFile({ size: 10, text: async () => '{"a":1}' }), '{"a":1}');
 });
+
+test('a granular sample is saved by name only and asks to be loaded again', () => {
+  const g = { type: 'granular', muted: false, solo: false, volumeDb: -6, part: 'all', params: { source: 'sample' }, sample: { name: 'loop.wav', buffer: {} } };
+  const obj = serializePatch([g]);
+  assert.equal(obj.widgets[0].sampleName, 'loop.wav');
+  assert.equal(JSON.stringify(obj).includes('buffer'), false);
+  const { widgets, warnings } = parsePatch(JSON.stringify(obj), null);
+  assert.equal(widgets[0].params.source, 'sample');
+  assert.ok(warnings.some((m) => m.includes("sample 'loop.wav' is not stored in patches")), warnings.join('; '));
+});

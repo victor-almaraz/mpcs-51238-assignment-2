@@ -1,5 +1,5 @@
 // Two-operator FM (synthesis-fm.md):
-//   mod Osc(sine, f·ratio) → depth Gain (I·f_mod, Hz) → decay Gain (1 → 0.1) → carrier.frequency
+//   mod Osc(sine, f·(ratio + fine)) → depth Gain (I·f_mod, Hz) → decay Gain (1 → 0.1) → carrier.frequency
 //   carrier Osc(sine, f) → env Gain → output
 // The depth and decay stages are separate so live index changes can reach sounding voices
 // while the index-decay envelope runs.
@@ -22,12 +22,14 @@ export class FM extends Instrument {
 
   startVoice(pitch, velocity, t) {
     const p = this.params;
-    const v = this.voiceModel(t, velocity, p.attack, p.release);
+    const v = this.voiceModel(t, velocity, p.attack, p.release, p.decay, p.sustain);
     const fc = mtof(pitch);
+    // Fine moves the modulator off the ratio grid (inharmonic, bell-like spectra).
+    const ratio = Math.max(0.01, p.ratio + p.fine);
     // Above 0.45·fs the Nyquist clamp already sets the depth to 0, so capping the modulator
     // frequency there changes nothing audible and keeps it inside the nominal range.
-    const mod = new OscillatorNode(this.ctx, { type: 'sine', frequency: Math.min(fc * p.ratio, 0.45 * this.ctx.sampleRate) });
-    const depth = new GainNode(this.ctx, { gain: this.depthHz(fc, p.ratio, p.index) });
+    const mod = new OscillatorNode(this.ctx, { type: 'sine', frequency: Math.min(fc * ratio, 0.45 * this.ctx.sampleRate) });
+    const depth = new GainNode(this.ctx, { gain: this.depthHz(fc, ratio, p.index) });
     const decay = new GainNode(this.ctx, { gain: 1 });
     const carrier = new OscillatorNode(this.ctx, { type: 'sine', frequency: fc });
     const env = new GainNode(this.ctx, { gain: 0 });
@@ -35,7 +37,7 @@ export class FM extends Instrument {
     carrier.connect(env).connect(this.polyNode);
     decay.gain.setValueAtTime(1, t);
     decay.gain.setTargetAtTime(0.1, t, Math.max(0.01, p.indexDecay) / 3);
-    Object.assign(v, { env, depth, fc, ratio: p.ratio, sources: [carrier, mod], nodes: [mod, depth, decay, carrier, env] });
+    Object.assign(v, { env, depth, fc, ratio, sources: [carrier, mod], nodes: [mod, depth, decay, carrier, env] });
     this.launch(v);
     return v;
   }
@@ -44,6 +46,6 @@ export class FM extends Instrument {
     if (name === 'index') {
       for (const v of this.activeVoices()) v.depth.gain.setTargetAtTime(this.depthHz(v.fc, v.ratio, value), now, GAIN_TAU);
     }
-    // ratio, index decay, attack and release apply to new voices.
+    // ratio, fine, index decay and the envelope apply to new voices.
   }
 }

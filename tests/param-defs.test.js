@@ -151,9 +151,11 @@ test('velocityGain: 0.3 at 127, square law, clamped to 1..127', () => {
 
 test('defaultParams returns the defaults with fresh arrays each call', () => {
   assert.deepEqual(defaultParams('subtractive'), {
-    waveform: 'sawtooth', cutoff: 2000, resonance: 1, attack: 0.01, release: 0.3,
+    waveform: 'sawtooth', cutoff: 2000, resonance: 1, envAmount: 0, attack: 0.01, decay: 0.3, sustain: 1, release: 0.3,
   });
-  assert.deepEqual(defaultParams('fm'), { ratio: 2, index: 3, indexDecay: 0.5, attack: 0.005, release: 0.4 });
+  assert.deepEqual(defaultParams('fm'), {
+    ratio: 2, fine: 0, index: 3, indexDecay: 0.5, attack: 0.005, decay: 0.5, sustain: 1, release: 0.4,
+  });
   const a = defaultParams('additive');
   const b = defaultParams('additive');
   assert.deepEqual(a.harmonics, HDEF);
@@ -162,4 +164,21 @@ test('defaultParams returns the defaults with fresh arrays each call', () => {
   a.harmonics[0] = 0;
   assert.equal(harmonics.default[0], 1);
   assert.equal(defaultParams('additive').harmonics[0], 1);
+});
+
+test('new params default to the sound from before they existed', () => {
+  // Patches saved earlier omit these params; their defaults must leave the sound unchanged.
+  assert.equal(getDef('subtractive', 'envAmount').default, 0);
+  for (const type of ['subtractive', 'fm', 'additive']) assert.equal(getDef(type, 'sustain').default, 1, type);
+  assert.equal(getDef('fm', 'fine').default, 0);
+  assert.equal(getDef('additive', 'vibratoDepth').default, 0);
+  assert.equal(getDef('pluck', 'pickPosition').default, 0);
+  assert.equal(getDef('granular', 'position').default, 0.5);
+  assert.equal(getDef('granular', 'pitchSpread').default, 0);
+  assert.equal(getDef('granular', 'attack').default, 0.05);
+  assert.equal(getDef('granular', 'release').default, 0.4);
+});
+
+test('no card has more than 8 controls', () => {
+  for (const type of SYNTH_TYPES) assert.ok(PARAM_DEFS[type].length <= 8, type);
 });

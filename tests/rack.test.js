@@ -200,3 +200,14 @@ test('restoreAll brings back an earlier rack unchanged after a replace', () => {
   const r = rackReducer(replaced, { type: 'restoreAll', widgets: before.widgets });
   assert.equal(r.widgets, before.widgets);
 });
+
+test('sample attaches a loaded file to a granular widget and selects it as the source', () => {
+  const s = addAll('granular', 'fm');
+  const sample = { name: 'a.wav', buffer: {}, seconds: 1 };
+  assert.equal(s.widgets[0].sample, null);
+  const r = rackReducer(s, { type: 'sample', id: s.widgets[0].id, sample });
+  assert.equal(r.widgets[0].sample, sample);
+  assert.equal(r.widgets[0].params.source, 'sample');
+  const other = rackReducer(s, { type: 'sample', id: s.widgets[1].id, sample });
+  assert.equal(other.widgets[1].sample, null);                // not granular: unchanged
+});

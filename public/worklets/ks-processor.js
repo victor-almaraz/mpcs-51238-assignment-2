@@ -3,8 +3,8 @@
 // constructor; process() does not allocate.
 //
 // Messages in (times in AudioContext seconds):
-//   {type:'on', id, pitch, vel, time, decay}   start a voice at `time`
-//   {type:'off', id, time}                     begin release at `time`
+//   {type:'on', id, pitch, vel, time, decay, pickPosition}   start a voice at `time`
+//   {type:'off', id, time, release}            begin release at `time` (T60 = release)
 //   {type:'steal', id, time}                   5 ms fade from `time`, then free the voice;
 //                                              a steal due before the voice starts cancels it
 //   {type:'allOff'}                            10 ms fade on every voice; drop pending starts
@@ -45,7 +45,7 @@ class KSProcessor extends AudioWorkletProcessor {
       this.voices.push({
         buf: new Float32Array(maxLen), N: 0, M: 0, w: 0, P: 0, C: 0, apX1: 0, apY1: 0, rho: 0,
         dcX1: 0, dcY1: 0, active: false, id: -1, startFrame: 0, releaseFrame: Infinity,
-        releasing: false, fade: 1, fadeStep: 0, passPeak: 0, age: 0,
+        releasing: false, fade: 1, fadeStep: 0, passPeak: 0, age: 0, rhoRel: 0, f: 0,
       });
     }
     this.queue = [];                                     // filled in onmessage, drained in process()
@@ -98,17 +98,25 @@ class KSProcessor extends AudioWorkletProcessor {
     v.C = (1 - d) / (1 + d);
     const t60 = Math.max(0.05, m.decay);
     v.rho = Math.min(0.9999, Math.pow(10, -3 / (t60 * f)));
+    v.rhoRel = v.rho;                                    // replaced by the note-off's release
+    v.f = f;
     const amp = 0.3 * Math.pow(Math.max(1, Math.min(127, m.vel)) / 127, 2);
 
-    // Excitation: N samples of seeded noise, one-pole lowpassed by brightness, mean removed.
+    // Excitation: N samples of seeded noise, one-pole lowpassed by brightness, then the pick
+    // position comb (1 − z^−k, k = position × N; it removes harmonics with a node at the pick
+    // point), mean removed and scaled to the velocity peak, so level never depends on position.
     const a = 0.08 + 0.92 * brightness * brightness;
     const buf = v.buf;
-    let y = 0, sum = 0;
+    let y = 0;
     for (let i = 0; i < N; i++) {
       y += a * ((this.rand() * 2 - 1) - y);
       buf[i] = y;
-      sum += y;
     }
+    const pick = m.pickPosition > 0 ? (m.pickPosition < 0.5 ? m.pickPosition : 0.5) : 0;
+    const kPick = Math.round(pick * N);
+    if (kPick >= 1) for (let i = N - 1; i >= kPick; i--) buf[i] -= buf[i - kPick];
+    let sum = 0;
+    for (let i = 0; i < N; i++) sum += buf[i];
     const mean = sum / N;
     let peak = 0;
     for (let i = 0; i < N; i++) {
@@ -138,8 +146,12 @@ class KSProcessor extends AudioWorkletProcessor {
         else this.startVoice(m, brightness, damping);
       } else if (m.type === 'off') {
         const v = this.findVoice(m.id);
-        if (v !== null) v.releaseFrame = Math.round(m.time * sampleRate);
-        else if (this.hasPendingOn(m.id, j)) keep = true;
+        if (v !== null) {
+          v.releaseFrame = Math.round(m.time * sampleRate);
+          // Release T60 → loop gain; never above the decay's, so a release only shortens.
+          const t60 = m.release > 0.02 ? m.release : 0.02;
+          v.rhoRel = Math.min(v.rho, Math.pow(10, -3 / (t60 * v.f)));
+        } else if (this.hasPendingOn(m.id, j)) keep = true;
       } else if (m.type === 'steal') {
         if (Math.round(m.time * sampleRate) >= blockEnd) keep = true;   // not due yet
         else {
@@ -192,7 +204,7 @@ class KSProcessor extends AudioWorkletProcessor {
       const buf = v.buf, N = v.N, C = v.C;
       const i0 = v.startFrame > blockStart ? v.startFrame - blockStart : 0;
       for (let i = i0; i < n; i++) {
-        if (!v.releasing && blockStart + i >= v.releaseFrame) v.releasing = true;
+        if (!v.releasing && blockStart + i >= v.releaseFrame) { v.releasing = true; v.rho = v.rhoRel; }
         const w = v.w;
         const r1 = w + 1 < N ? w + 1 : 0;              // x[n−M]
         const avg = v.rho * ((1 - S) * buf[r1] + S * buf[w]);  // buf[w] holds x[n−M−1]
@@ -219,7 +231,6 @@ class KSProcessor extends AudioWorkletProcessor {
         const ab = ap < 0 ? -ap : ap;
         if (ab > v.passPeak) v.passPeak = ab;
         if (r1 === 0) {                                  // one full pass round the loop
-          if (v.releasing) v.rho *= 0.9;
           if (v.passPeak < 1e-6) { v.active = false; break; }
           v.passPeak = 0;
         }

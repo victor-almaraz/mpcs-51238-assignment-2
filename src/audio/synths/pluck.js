@@ -4,7 +4,6 @@
 
 import { Instrument } from '../instrument.js';
 import { GAIN_TAU } from '../smoothing.js';
-import { mtof } from './param-defs.js';
 
 export class Pluck extends Instrument {
   constructor(ctx, pool, opts = {}) {
@@ -25,18 +24,19 @@ export class Pluck extends Instrument {
 
   startVoice(pitch, velocity, t) {
     const id = this.nextId++;
-    const decay = this.params.decay;
-    this.node.port.postMessage({ type: 'on', id, pitch, vel: velocity, time: t, decay });
+    const { decay, pickPosition } = this.params;
+    this.node.port.postMessage({ type: 'on', id, pitch, vel: velocity, time: t, decay, pickPosition });
     // Without a release the string decays below −120 dB (the inactivity floor) after 2 × T60.
     return { id, start: t, offTime: Infinity, end: t + 2 * decay };
   }
 
   releaseVoice(v, t) {
-    // After `t` the processor multiplies ρ by 0.9 per loop pass; amplitude falls below −120 dB
-    // within ~16 passes, i.e. 16 / f seconds (0.8 s at 20 Hz). 20 / f leaves a margin.
-    this.node.port.postMessage({ type: 'off', id: v.id, time: t });
+    // From `t` the processor switches to a loop gain with T60 = release (never slower than the
+    // decay), so the string is below −120 dB after 2 × release; 50 ms leaves a margin.
+    const release = this.params.release;
+    this.node.port.postMessage({ type: 'off', id: v.id, time: t, release });
     v.offTime = t;
-    v.end = Math.min(v.end, t + Math.max(0.15, 20 / mtof(v.pitch)));
+    v.end = Math.min(v.end, t + 2 * release + 0.05);
   }
 
   fastRelease(v, t) {
@@ -66,7 +66,7 @@ export class Pluck extends Instrument {
     if (name === 'damping' || name === 'brightness') {
       this.node.parameters.get(name).setTargetAtTime(value, now, GAIN_TAU);
     }
-    // decay travels with each note.
+    // decay and pick position travel with each note, release with each note-off.
   }
 
   dispose() {

@@ -56,6 +56,7 @@ export default function WidgetCard({ widget, song, pluckEngine, headingRef, acti
           engine={type === 'pluck' ? pluckEngine : undefined}
           onParam={(paramName, value) => actions.param(id, paramName, value)}
           onHarmonic={(index, value) => actions.harmonic(id, index, value)}
+          onSample={type === 'granular' ? (file) => actions.loadSample(id, file) : undefined}
         />
       </CardSection>
 

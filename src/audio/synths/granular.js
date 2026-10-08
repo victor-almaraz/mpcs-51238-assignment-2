@@ -1,9 +1,10 @@
 // Granular (synthesis-granular.md):
 //   AudioBufferSourceNode(source buffer, offset, playbackRate) → Gain(triangular window)
 //   → voice bus Gain(env) → polyNode → output
-// Each voice is a bus with a fixed AR envelope; grains are scheduled ahead by pump(), driven
+// Each voice is a bus with an AR envelope (attack, release); grains are scheduled ahead by pump(), driven
 // by a 25 ms timer in realtime mode or by the offline scheduler's scheduleRange().
 // All randomness comes from the widget's seeded mulberry32 so offline renders are reproducible.
+// The source is a generated 2 s buffer or the user's sample (setSample, conditioned by sample.js).
 
 import { Instrument } from '../instrument.js';
 import { mulberry32, hashSeed } from '../random.js';
@@ -14,8 +15,6 @@ export const MAX_GRAINS = 64;          // concurrent grains per widget (project 
 export const BASE_HZ = 261.63;         // C4: pitch of the 'saw' and 'chord' root
 const SOURCE_SECONDS = 2;
 const CHORD_HZ = [261.63, 329.63, 392.0];   // C4 E4 G4
-const ATTACK = 0.05;
-const RELEASE = 0.4;
 const JITTER = 0.2;                    // ±20 % of the grain interval
 const TIMER_MS = 25;
 
@@ -39,13 +38,23 @@ export class Granular extends Instrument {
     this.lookahead = typeof opts.lookahead === 'function' ? opts.lookahead : () => 0.1;
     this.maxTime = typeof opts.maxTime === 'number' ? opts.maxTime : Infinity;
     this.buffers = {};
+    this.sample = null;
     this.voiceSet = new Set();
     this.spans = [];                   // { s, e } of scheduled grains, for the concurrency cap
     this.timer = null;
   }
 
-  /** 2 s mono source buffer, generated on first use and cached per instrument. */
+  /**
+   * The user's sample (an AudioBuffer already conditioned by sample.js), or null. Grains
+   * already scheduled keep the buffer they started with.
+   */
+  setSample(buffer) {
+    this.sample = buffer || null;
+  }
+
+  /** 2 s mono source buffer, generated on first use and cached per instrument; 'sample' is the user's. */
   buffer(kind) {
+    if (kind === 'sample') return this.sample;
     const cached = this.buffers[kind];
     if (cached) return cached;
     const sr = this.ctx.sampleRate;
@@ -92,7 +101,7 @@ export class Granular extends Instrument {
   }
 
   startVoice(pitch, velocity, t) {
-    const v = this.voiceModel(t, velocity, ATTACK, RELEASE);
+    const v = this.voiceModel(t, velocity, this.params.attack, this.params.release);
     const env = new GainNode(this.ctx, { gain: 0 });
     env.connect(this.polyNode);
     Object.assign(v, { env, freq: mtof(pitch), next: t, grains: new Set(), nodes: [env] });
@@ -132,12 +141,16 @@ export class Granular extends Instrument {
   emitGrain(v, t, now) {
     const p = this.params;
     const buf = this.buffer(p.source);
+    if (!buf) return;                  // 'sample' chosen but no file loaded: silent
     const bufDur = buf.duration;
-    const rate = p.source === 'noise' ? 1 : v.freq / BASE_HZ;
+    const r = this.rand();
+    let rate = p.source === 'noise' ? 1 : v.freq / BASE_HZ;
+    // Pitch spread: each grain detuned by up to ±spread cents. The extra draw happens only
+    // when spread is on, so renders with spread 0 keep their earlier random sequence.
+    if (p.pitchSpread > 0 && p.source !== 'noise') rate *= Math.pow(2, ((this.rand() * 2 - 1) * p.pitchSpread) / 1200);
     const content = Math.min(p.grainSize * rate, bufDur);   // buffer-content seconds
     const size = content / rate;                              // wall-clock grain length
-    const r = this.rand();
-    const centre = (bufDur - content) / 2;
+    const centre = p.position * (bufDur - content);
     const offset = Math.min(Math.max(0, centre + (r - 0.5) * p.spray * bufDur), Math.max(0, bufDur - content));
 
     // Cap: count scheduled grains overlapping [t, t + size]; skip past the cap, never steal.
@@ -201,7 +214,7 @@ export class Granular extends Instrument {
   }
 
   applyParam() {
-    // source, grain size, density and spray are read when each grain is emitted.
+    // Every param is read when a grain is emitted; attack and release apply to new voices.
   }
 
   dispose() {

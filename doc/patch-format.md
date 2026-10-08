@@ -19,6 +19,8 @@ The JSON patch schema, save/load, validation, migration and errors. Storage is *
 - `part` is `"all"` or a part key `"t<track>c<channel>"` (see "Parts" in `midi-decoding.md`).
 - `partLabel` (optional) is the part's label at save time. The UI uses it to explain a fallback ("Part 'Bass' not in this file").
 - Live-input arming is session state and is not stored (`live-input.md`).
+- `sampleName` (optional, granular only) is the name of the widget's user sample at save time. The audio itself is never stored: patches stay small text files, and samples are user files. Loading a patch whose granular source is `"sample"` adds the warning "Widget N: sample 'name' is not stored in patches; load it again", and the widget is silent until a file is loaded (`synthesis-granular.md` "User sample").
+- Params added after version 1 (filter env, decay, sustain, fine, vibrato, pick position, release, position, pitch spread, granular attack and release) need no version bump: older patches omit them, they take their defaults, and those defaults reproduce the earlier sound. The one exception is the pluck release (0.1 s), which replaces a fixed, pitch-dependent mute (`synthesis-pluck.md`). Missing params never produce an "adjusted" warning.
 - Param names and ranges come from the single `PARAM_DEFS` table (`synthesis-conventions.md`). Never duplicate the ranges.
 
 ## Validation (untrusted input)
@@ -59,7 +61,7 @@ function parsePatch(text: string, song: Song | null): { widgets: WidgetState[]; 
 ## Versioning and migration
 - `CURRENT_VERSION = 1`. `migrate` applies the steps `v1 → v2 → …` in order. Each step is a pure function with its own test.
 - A version greater than `CURRENT_VERSION` raises the error "Made with a newer version".
-- Bump the version whenever a param is renamed, removed, or changes unit or scale.
+- Bump the version whenever a param is renamed, removed, or changes unit or scale. Adding a param whose default keeps the earlier sound does not need a bump.
 
 ## Save
 ```ts

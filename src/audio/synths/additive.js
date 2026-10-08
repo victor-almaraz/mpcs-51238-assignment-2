@@ -1,7 +1,9 @@
 // Additive: OscillatorNode with PeriodicWave(8 harmonic amplitudes) → env Gain → output
-// (synthesis-additive.md).
+// (synthesis-additive.md). Vibrato: a per-voice sine LFO (rate) → Gain (depth, cents) →
+// osc.detune; it changes pitch only, never level.
 
 import { Instrument } from '../instrument.js';
+import { FILTER_TAU } from '../smoothing.js';
 import { mtof } from './param-defs.js';
 
 export function makeWave(ctx, h) {
@@ -21,19 +23,28 @@ export class Additive extends Instrument {
 
   startVoice(pitch, velocity, t) {
     const p = this.params;
-    const v = this.voiceModel(t, velocity, p.attack, p.release);
+    const v = this.voiceModel(t, velocity, p.attack, p.release, p.decay, p.sustain);
     const osc = new OscillatorNode(this.ctx, { frequency: mtof(pitch), periodicWave: this.wave });
+    const lfo = new OscillatorNode(this.ctx, { type: 'sine', frequency: p.vibratoRate });
+    const depth = new GainNode(this.ctx, { gain: p.vibratoDepth });
     const env = new GainNode(this.ctx, { gain: 0 });
+    lfo.connect(depth).connect(osc.detune);
     osc.connect(env).connect(this.polyNode);
-    Object.assign(v, { env, osc, sources: [osc], nodes: [osc, env] });
+    Object.assign(v, { env, osc, lfo, depth, sources: [osc, lfo], nodes: [osc, lfo, depth, env] });
     this.launch(v);
     return v;
   }
 
-  applyParam(name, value) {
-    if (name !== 'harmonics') return;
-    // The engine coalesces edits to one call per animation frame.
-    this.wave = makeWave(this.ctx, value);
-    for (const v of this.activeVoices()) v.osc.setPeriodicWave(this.wave);
+  applyParam(name, value, now) {
+    if (name === 'harmonics') {
+      // The engine coalesces edits to one call per animation frame.
+      this.wave = makeWave(this.ctx, value);
+      for (const v of this.activeVoices()) v.osc.setPeriodicWave(this.wave);
+    } else if (name === 'vibratoRate') {
+      for (const v of this.activeVoices()) v.lfo.frequency.setTargetAtTime(value, now, FILTER_TAU);
+    } else if (name === 'vibratoDepth') {
+      for (const v of this.activeVoices()) v.depth.gain.setTargetAtTime(value, now, FILTER_TAU);
+    }
+    // The envelope times apply to new voices.
   }
 }

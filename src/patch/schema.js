@@ -39,6 +39,8 @@ function serializeWidget(w) {
     params[d.name] = Array.isArray(v) ? v.slice() : v;
   }
   out.params = params;
+  // Only the name: the audio is not stored, so loading the patch asks for the file again.
+  if (w.sample && typeof w.sample.name === 'string') out.sampleName = w.sample.name;
   return out;
 }
 

@@ -45,3 +45,21 @@ test('parseVolume reads dB and Off', () => {
   assert.equal(parseVolume('6 Hz'), null);
   assert.equal(parseVolume('quiet'), null);
 });
+
+test('new units format and parse round trip', () => {
+  const env = getDef('subtractive', 'envAmount');
+  const fine = getDef('fm', 'fine');
+  const rate = getDef('additive', 'vibratoRate');
+  const spread = getDef('granular', 'pitchSpread');
+  assert.equal(formatParam(env, 2), '2.0 oct');
+  assert.equal(formatParam(fine, 0.25), '+0.25');
+  assert.equal(formatParam(fine, -0.1), '−0.10');
+  assert.equal(formatParam(fine, 0), '0.00');
+  assert.equal(formatParam(rate, 5), '5.0 Hz');
+  assert.equal(formatParam(spread, 50), '50 cents');
+  assert.equal(parseParam(env, '3', formatParam(env, 2)), 3);
+  assert.equal(parseParam(fine, '−0.2'), -0.2);
+  assert.equal(parseParam(fine, '+0.3'), 0.3);
+  assert.equal(parseParam(spread, '25 ct'), 25);
+  assert.equal(parseParam(rate, '6.5', formatParam(rate, 5)), 6.5);
+});

@@ -12,7 +12,9 @@ The pluck algorithm and its parameters. The AudioWorklet that runs it (file layo
 |---|---|---|---|---|---|
 | damping | 0 – 1 | 0.5 | — | lin | loop lowpass weight S (0 = bright loop, 1 = dark) |
 | brightness | 0 – 1 | 0.7 | — | lin | one-pole lowpass on the noise burst (excitation colour) |
+| pickPosition ("Pick position") | 0 – 0.5 | 0 | fraction of the string from the bridge | lin, step 0.01 | comb `1 − z^−k` on the burst, `k = round(position · N)`; 0 = no comb |
 | decay | 0.2 – 10 | 2 | s (T60) | pow3 | loop gain ρ per note |
+| release | 0.02 – 2 | 0.1 | s (T60 after note-off) | pow3 | loop gain after note-off, `min(ρ, 10^(−3/(release·f)))` |
 
 ## Algorithm (Jaffe & Smith 1983 extensions)
 - Excitation: N samples of white noise (seeded `mulberry32`), lowpassed by brightness, scaled by velocity.
@@ -31,6 +33,8 @@ The pluck algorithm and its parameters. The AudioWorklet that runs it (file layo
   - The noise burst has a nonzero mean, and the loop preserves DC.
   - Subtract the burst's mean at excitation.
   - Run a DC blocker on the output: `y = x − x1 + 0.995·y1`.
+- **Pick position:** the comb removes harmonics with a node at the pick point (k = N/2 removes the even harmonics). It is applied to the burst before the mean is removed and the burst is scaled to the velocity peak, so level does not depend on position.
+- **Release (muting):** at the note-off frame the loop gain switches to the release's ρ, which is never above the decay's, so a release can only shorten the ring. The main thread ends the logical voice `2 × release + 50 ms` later (below −120 dB). This replaces the earlier fixed "ρ × 0.9 per pass", whose length depended on pitch.
 - **No retuning:** M is fixed for the life of a voice; changing it on a sounding voice clicks.
 - **Stability:** loop gain stays below 1 at all frequencies. The two-point average has peak gain 1, so ρ ≤ 0.9999 is sufficient; any added loop filter has peak gain ≤ 1 (`audio-safety.md`).
 - Cost: about 6 multiply-adds per sample per voice, all inside one node.

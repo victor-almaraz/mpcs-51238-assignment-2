@@ -2,7 +2,9 @@
 //
 // A voice carries a model of its envelope so the value at any time can be computed without
 // reading AudioParam.value (which lags automation and cannot see the future):
-//   start, attack, peak          linear attack to a held peak
+//   start, attack, peak          linear attack to the peak
+//   sustain, decayTau            then exponential decay towards sustain × peak (sustain 1 or
+//                                absent: the peak is held, the plain AR shape)
 //   offTime, relFrom, tau        exponential release from relFrom starting at offTime
 
 export const MIN_ATTACK = 0.002;
@@ -16,20 +18,26 @@ export function holdAt(param, t, valueAtT) {
   else { param.cancelScheduledValues(t); param.setValueAtTime(valueAtT, t); }
 }
 
-function attackValue(v, t) {
+function heldValue(v, t) {
   if (t <= v.start) return 0;
   const x = (t - v.start) / v.attack;
-  return x >= 1 ? v.peak : x * v.peak;
+  if (x < 1) return x * v.peak;
+  const s = v.sustain ?? 1;
+  if (s >= 1) return v.peak;
+  const level = s * v.peak;
+  return level + (v.peak - level) * Math.exp(-(t - v.start - v.attack) / v.decayTau);
 }
 
 export function envValueAt(v, t) {
-  if (!(t > v.offTime)) return attackValue(v, t);
+  if (!(t > v.offTime)) return heldValue(v, t);
   return v.relFrom * Math.exp(-(t - v.offTime) / v.tau);
 }
 
 export function scheduleAttack(param, v) {
   param.setValueAtTime(0, v.start);
   param.linearRampToValueAtTime(v.peak, v.start + v.attack);
+  const s = v.sustain ?? 1;
+  if (s < 1) param.setTargetAtTime(s * v.peak, v.start + v.attack, v.decayTau);
 }
 
 /** Starts an exponential release on `param` at `t` with time constant `tau`; updates the model. */

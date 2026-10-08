@@ -93,12 +93,17 @@ export class Instrument {
 
   // ----- shared voice helpers -----
 
-  /** Envelope model for a new AR voice; see envelope.js. */
-  voiceModel(t, velocity, attack, release) {
+  /**
+   * Envelope model for a new voice; see envelope.js. Without `decay` and `sustain` it is the
+   * plain AR shape (sustain 1). Sustain never exceeds 1, so the peak stays the velocity gain.
+   */
+  voiceModel(t, velocity, attack, release, decay = MIN_RELEASE, sustain = 1) {
     return {
       start: t,
       attack: Math.max(MIN_ATTACK, attack),
       peak: velocityGain(velocity),
+      sustain: Math.min(1, Math.max(0, sustain)),
+      decayTau: Math.max(MIN_RELEASE, decay) / 3,
       release: Math.max(MIN_RELEASE, release),
       offTime: Infinity,
       relFrom: 0,

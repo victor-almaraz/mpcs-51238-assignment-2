@@ -124,3 +124,36 @@ test('scheduleRelease for a voice that has not started holds at 0', () => {
   assertCalls(p.calls, [['cancelScheduledValues', 3], ['setValueAtTime', 0, 3], ['setTargetAtTime', 0, 3, FAST_TAU]]);
   assert.equal(v.relFrom, 0);
 });
+
+// ADSR: 100 ms attack to 0.3, then decay (τ 0.1 s) towards sustain 0.5 × 0.3 = 0.15.
+const adsr = (extra = {}) => voice({ sustain: 0.5, decayTau: 0.1, ...extra });
+
+test('envValueAt decays from the peak towards sustain × peak after the attack', () => {
+  const v = adsr();
+  close(envValueAt(v, 1.05), 0.15);                         // still in the attack
+  close(envValueAt(v, 1.1), 0.3);                           // peak at the end of the attack
+  close(envValueAt(v, 1.2), 0.15 + 0.15 * Math.exp(-1));
+  close(envValueAt(v, 3), 0.15, 1e-6);                      // settled at the sustain level
+});
+
+test('envValueAt: sustain 1 or absent holds the peak (plain AR)', () => {
+  close(envValueAt(adsr({ sustain: 1 }), 2), 0.3);
+  close(envValueAt(voice(), 2), 0.3);
+});
+
+test('scheduleAttack adds the decay to sustain only when sustain < 1', () => {
+  const p = fakeParam({ trapValue: true });
+  scheduleAttack(p, adsr());
+  assertCalls(p.calls, [['setValueAtTime', 0, 1], ['linearRampToValueAtTime', 0.3, 1.1], ['setTargetAtTime', 0.15, 1.1, 0.1]]);
+  const q = fakeParam({ trapValue: true });
+  scheduleAttack(q, adsr({ sustain: 1 }));
+  assert.equal(q.calls.length, 2);
+});
+
+test('scheduleRelease during the decay starts from the decaying level', () => {
+  const p = fakeParam({ hold: false, trapValue: true });
+  const v = adsr();
+  scheduleRelease(p, v, 1.2, 0.05);
+  close(v.relFrom, 0.15 + 0.15 * Math.exp(-1));
+  assertCalls(p.calls, [['cancelScheduledValues', 1.2], ['setValueAtTime', v.relFrom, 1.2], ['setTargetAtTime', 0, 1.2, 0.05]]);
+});

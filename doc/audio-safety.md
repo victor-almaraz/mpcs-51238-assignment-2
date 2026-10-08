@@ -300,6 +300,11 @@ function buildFallback(ctx: BaseAudioContext): { input: AudioNode; output: Audio
 | Karplus-Strong loop gain ρ | ≤ 0.9999, loop-filter peak gain ≤ 1 (`synthesis-pluck.md`) |
 | Additive partials | Divided by `max(1, sum)` (`synthesis-additive.md`) |
 | Granular | ≤ 4 voices, ≤ 64 concurrent grains per widget; grain window ≥ 2 ms per side (project limit) |
+| Filter envelope | ≤ 6 octaves, and per voice so cutoff × 2^octaves ≤ 0.45·fs (`synthesis-subtractive.md`) |
+| Sustain | 0 – 1 of the velocity peak; decay only lowers the level |
+| Vibrato | ≤ 100 cents on `detune`; pitch only |
+| Pluck pick position, release | Excitation re-scaled to the velocity peak after the comb; release loop gain ≤ the decay's ρ |
+| Granular user sample | Peak ≤ 1 and RMS ≤ 1/√3 after conditioning ("User samples" below) |
 
 ### Smoothing
 - Gain changes (volume, mute/solo, master) use `setTargetAtTime(target, t, 0.01)`; `.value` is never set while audio runs.
@@ -319,6 +324,15 @@ function buildFallback(ctx: BaseAudioContext): { input: AudioNode; output: Audio
 - Solo changes are applied to all widgets in one scheduling pass with the same `t`.
 - Live input (`live-input.md`): note-ons above 200 per second (all sources combined) are dropped (project limit). Voice caps and stealing apply (`audio-engine-core.md`).
 - File playback: events already behind `currentTime` are skipped, not played in a burst (`midi-playback-scheduling.md`).
+
+### User samples
+A granular widget can play a user's audio file (`synthesis-granular.md` "User sample"). The file is arbitrary: it may be full scale, clipped, DC-offset, very long or multi-channel. `conditionSample` (`src/audio/sample.js`) makes it no louder than the generated sources before it reaches the engine:
+- **Size:** files over 4 MB are refused before decoding (decoded audio can be tens of times larger); audio past 20 s is dropped.
+- **Mono and finite:** channels are averaged; NaN and ±Infinity count as 0.
+- **DC:** the mean is subtracted, then a 10 Hz one-pole high-pass removes drift.
+- **Edges:** 5 ms fades at both ends, so grains taken at the edges and the truncation point do not click.
+- **Level:** gain = `min(1 / peak, (1/√3) / rms)`, so the peak is at most 1 (the generated saw and noise) and the RMS at most that of a full-scale saw or noise. A full-scale square therefore plays 4.8 dB below full scale. Files with a peak under −80 dBFS are refused as silent.
+- The grain windows, polyGain, voice cap, grain cap and the output stage then apply as for the generated sources.
 
 ## Safety UI
 Controls are specified in `controls-and-accessibility.md`; placement in `layout-and-responsive.md`.
@@ -343,6 +357,11 @@ Offline renders (`OfflineAudioContext`, 44.1 and 48 kHz, stereo) through the rea
 | 6 | Patch load and solo toggle mid-render |
 | 7 | NaN injected at 1.0 s |
 | 8 | Constant DC input of 0.5 |
+| 9 | Subtractive, 16 voices, 6-octave filter envelope at max resonance, retriggered every 250 ms |
+| 10 | FM at max index, ratio 12 + fine 0.5, decay to sustain 0, low and highest notes |
+| 11 | Additive, all partials at max, 16 voices, vibrato 100 cents at 12 Hz |
+| 12 | Pluck, pick position 0.5, release 2 s, 16 voices retriggered every 10 ms with note-offs |
+| 13 | Granular user sample (conditioned full-scale square with DC), 4 high voices, max density, size, spray and pitch spread |
 
 | Assertion | Threshold |
 |---|---|
@@ -351,7 +370,7 @@ Offline renders (`OfflineAudioContext`, 44.1 and 48 kHz, stereo) through the rea
 | DC (mean per 1 s window after 0.1 s) | \|mean\| ≤ 1e-3 |
 | Onset peak (first 128 frames) | ≤ 0.02 |
 | Fade-in complete | Within 1 % of steady state by 60 ms |
-| Sample-to-sample step (cases 1–6) | ≤ 0.25 (project limit) |
+| Sample-to-sample step (cases 1–6, 9–13) | ≤ 0.25 (project limit) |
 | Case 7 | Zero output for ≥ 250 ms from the fault frame; `fault` posted; recovery fade ≤ 50 ms |
 | Below-ceiling transparency | −4 dBFS input with `dcHz: 0`: output equals input delayed by L frames within 1e-4 |
 
@@ -360,6 +379,7 @@ The suite runs on the dev-only page `/dev/safety/` (`src/components/dev/safety-c
 - **Sample-step check runs at default levels only.** At worst-case levels, bright full-scale content exceeds 0.25 by itself. A single 12.5 kHz sine at 0.3 peak has a step of 2 · 0.3 · sin(π · 12543 / 44100) ≈ 0.47, measured 0.468. That is not a click. The ceiling, non-finite, DC and onset checks run at both levels.
 - **Case 1 uses velocity 100, not 127.** At 127, case 1 failed DC at worst-case levels (0.0014) and the sample step at default levels (0.267 at 44.1 kHz, 0.250 at 48 kHz). The step peak was at 3.481 s, the bright end of the cutoff sweep, not at a note onset. The DC came from 1 s windows cutting the periods of low saws. At velocity 100 the limiter still reaches the ceiling at worst-case levels, and every check passes (DC 0.00042, step 0.166 / 0.155).
 - Results on 2026-10-08, Chromium, 44.1 and 48 kHz: worst case 74/74, default 86/86.
+- **Cases 9–13** were added with the expanded params (filter envelope, FM fine, ADSR, vibrato, pick position and release, granular position and pitch spread, user samples). Results on 2026-10-08, Chromium, 44.1 and 48 kHz, cases 1–13: worst case 114/114, default 136/136. Largest sample step in cases 9–13 at default levels: 0.173 (case 12).
 
 ## Unconfirmed behaviour
 - Handling of out-of-range samples at `destination` and the spec's NaN rule for AudioParam computed values were not checked against the current spec text.

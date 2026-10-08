@@ -49,6 +49,7 @@ function snapshot(w) {
     volumeDb: w.volumeDb,
     part: w.part ?? 'all',
     params: copyParams(w.params),
+    sample: w.sample ?? null,          // granular: { name, buffer, seconds } (not copied)
   };
 }
 
@@ -114,6 +115,7 @@ export class Engine {
     e.gain = null;
     if (!inst) return;
     for (const [k, v] of Object.entries(e.widget.params)) inst.setParam(k, v);
+    if (e.widget.sample && inst.setSample) inst.setSample(e.widget.sample.buffer);
     inst.output.connect(this.bus.mixBus);
     e.gain = new TrackedParam(inst.output.gain, 0);
     if (rampIn > 0) e.gain.linearTo(target, now, rampIn);
@@ -145,6 +147,7 @@ export class Engine {
       for (const [k, v] of Object.entries(e.widget.params)) {
         if (!sameValue(prev.params[k], v)) e.inst.setParam(k, v);
       }
+      if (prev.sample !== e.widget.sample && e.inst.setSample) e.inst.setSample(e.widget.sample?.buffer ?? null);
       if (prev.part !== e.widget.part) e.inst.allNotesOff(now);
       if (Math.abs(target - e.gain.target) > 1e-9) e.gain.setTarget(target, now, target > e.gain.target ? RISE_TAU : GAIN_TAU);
     }
