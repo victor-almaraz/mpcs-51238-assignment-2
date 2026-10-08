@@ -135,7 +135,7 @@ const CASES = [
 function analyse(buf, caseId, extra) {
   const sr = buf.sampleRate;
   const L = buf.getChannelData(0), R = buf.getChannelData(1);
-  let maxAbs = 0, nonFinite = 0, maxStep = 0, onset = 0, worstDc = 0;
+  let maxAbs = 0, nonFinite = 0, maxStep = 0, maxStepAt = 0, onset = 0, worstDc = 0;
   for (const ch of [L, R]) {
     for (let i = 0; i < ch.length; i++) {
       const x = ch[i];
@@ -145,7 +145,7 @@ function analyse(buf, caseId, extra) {
       if (i < 128 && a > onset) onset = a;
       if (i > 0 && Number.isFinite(ch[i - 1])) {
         const s = Math.abs(x - ch[i - 1]);
-        if (s > maxStep) maxStep = s;
+        if (s > maxStep) { maxStep = s; maxStepAt = i / sr; }
       }
     }
     for (let w = Math.round(0.1 * sr); w + sr <= ch.length; w += sr) {
@@ -160,7 +160,7 @@ function analyse(buf, caseId, extra) {
     { name: 'DC per 1 s window ≤ 1e-3', value: worstDc, pass: worstDc <= 1e-3 },
     { name: 'onset peak (128 frames) ≤ 0.02', value: onset, pass: onset <= 0.02 },
   ];
-  if (caseId <= 6) checks.push({ name: `sample step ≤ ${MAX_STEP}`, value: maxStep, pass: maxStep <= MAX_STEP });
+  if (caseId <= 6) checks.push({ name: `sample step ≤ ${MAX_STEP} (largest at ${maxStepAt.toFixed(3)} s)`, value: maxStep, pass: maxStep <= MAX_STEP });
   if (caseId === 7) {
     // The NaN sample enters the limiter at f0; the rest of that render quantum, then 250 ms,
     // are silent, followed by a 50 ms linear fade-in back to the steady tone.
@@ -178,12 +178,13 @@ function analyse(buf, caseId, extra) {
   return checks;
 }
 
-async function runCase(c, sampleRate) {
+async function runCase(c, sampleRate, levels) {
   const ctx = offline(sampleRate);
   if (c.needsSuspend && typeof ctx.suspend !== 'function') {
     return { skipped: 'OfflineAudioContext.suspend() is not supported in this browser' };
   }
-  const engine = await buildEngine(ctx, 1, c.widgets(), { masterGain: 1 });
+  const widgets = levels.widgetDb === null ? c.widgets() : c.widgets().map((w) => ({ ...w, volumeDb: levels.widgetDb }));
+  const engine = await buildEngine(ctx, 1, widgets, { masterGain: levels.master });
   const extra = { faults: 0 };
   engine.bus.setHandler((e) => { if (e.type === 'fault') extra.faults++; });
   c.play(ctx, engine);
@@ -233,12 +234,17 @@ async function runTransparency(sampleRate) {
   return { checks: [{ name: `equals input delayed ${L} frames (±1e-4)`, value: worst, pass: worst <= 1e-4 }] };
 }
 
-export async function runSafetySuite(onResult) {
+export const LEVELS = {
+  worst: { label: 'worst case (widget 0 dB, master 0 dB)', widgetDb: null, master: 1 },
+  default: { label: 'default (widget −6 dB, master −12 dB)', widgetDb: -6, master: 0.25 },
+};
+
+export async function runSafetySuite(onResult, levels = LEVELS.worst) {
   const results = [];
   for (const sr of [44100, 48000]) {
     for (const c of CASES) {
       let r;
-      try { r = await runCase(c, sr); } catch (err) { r = { error: String(err && err.stack || err) }; }
+      try { r = await runCase(c, sr, levels); } catch (err) { r = { error: String(err && err.stack || err) }; }
       const row = { id: `${c.id}`, name: c.name, sampleRate: sr, ...r };
       results.push(row);
       onResult?.(row);

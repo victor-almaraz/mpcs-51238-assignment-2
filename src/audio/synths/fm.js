@@ -24,7 +24,9 @@ export class FM extends Instrument {
     const p = this.params;
     const v = this.voiceModel(t, velocity, p.attack, p.release);
     const fc = mtof(pitch);
-    const mod = new OscillatorNode(this.ctx, { type: 'sine', frequency: fc * p.ratio });
+    // Above 0.45·fs the Nyquist clamp already sets the depth to 0, so capping the modulator
+    // frequency there changes nothing audible and keeps it inside the nominal range.
+    const mod = new OscillatorNode(this.ctx, { type: 'sine', frequency: Math.min(fc * p.ratio, 0.45 * this.ctx.sampleRate) });
     const depth = new GainNode(this.ctx, { gain: this.depthHz(fc, p.ratio, p.index) });
     const decay = new GainNode(this.ctx, { gain: 1 });
     const carrier = new OscillatorNode(this.ctx, { type: 'sine', frequency: fc });

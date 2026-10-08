@@ -25,7 +25,7 @@ export const controlBase = `inline-flex items-center justify-center gap-2 rounde
 export const controlSizes = {
   sm: 'min-h-6 min-w-6 px-2',
   md: 'min-h-8 min-w-8 px-3',
-  lg: 'min-h-11 min-w-11 px-4',
+  lg: 'min-h-11 min-w-11 px-3 lg:px-4',
 };
 
 export const iconSizes = {

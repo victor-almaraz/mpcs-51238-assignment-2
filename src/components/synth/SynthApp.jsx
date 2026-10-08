@@ -93,6 +93,7 @@ export default function SynthApp() {
     });
     setSession(s);
     setOldIOS(isOldIOS());
+    if (process.env.NODE_ENV !== 'production') window.__synthSession = s;   // dev debugging only
     return () => s.dispose();
   }, [say, showAlert]);
 

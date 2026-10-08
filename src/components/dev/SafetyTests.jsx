@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button, Heading } from '@/design-systems/meta';
-import { runSafetySuite } from './safety-cases';
+import { LEVELS, runSafetySuite } from './safety-cases';
 
 const fmt = (v) => (typeof v === 'number' ? (Math.abs(v) < 1e-3 && v !== 0 ? v.toExponential(2) : v.toFixed(4)) : String(v));
 
@@ -15,11 +15,11 @@ export default function SafetyTests() {
     return <p className="text-sm">The safety test runner is available in development builds only.</p>;
   }
 
-  const run = async () => {
+  const run = async (levels) => {
     setRunning(true);
     setRows([]);
-    const results = await runSafetySuite((row) => setRows((r) => [...r, row]));
-    window.__safetyResults = results;
+    const results = await runSafetySuite((row) => setRows((r) => [...r, row]), levels);
+    window.__safetyResults = { levels: levels.label, results };
     setRunning(false);
   };
 
@@ -28,8 +28,11 @@ export default function SafetyTests() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
-        <Button size="lg" onClick={run} disabled={running}>
-          {running ? 'Running…' : 'Run safety tests'}
+        <Button size="lg" onClick={() => run(LEVELS.worst)} disabled={running}>
+          {running ? 'Running…' : 'Run at worst-case levels'}
+        </Button>
+        <Button size="lg" onClick={() => run(LEVELS.default)} disabled={running}>
+          Run at default levels
         </Button>
         {!running && rows.length > 0 && (
           <span className="text-sm font-semibold" data-testid="summary">
