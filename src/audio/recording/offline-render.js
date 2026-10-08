@@ -5,6 +5,8 @@
 //   buildEngine(ctx, seed) → Promise<{ output: AudioNode }>   (already connected to ctx.destination)
 //   createOfflineScheduler(ctx, engine) → { scheduleRange(fromSec, toSec) }
 // }
+// The engine may have flush() → Promise (Engine.flush); it is awaited before rendering and
+// before each resume so worklet note messages arrive in time.
 // opts = { sampleRate?, format: 'pcm16' | 'float32', dither: boolean, seed: number }
 // onProgress(fraction | null)   null = indeterminate (no OfflineAudioContext.suspend)
 
@@ -56,6 +58,8 @@ export async function renderSongToWav(songDurationSec, deps, opts, onProgress, s
     const engine = await race(deps.buildEngine(ctx, opts.seed));
     // buildEngine connects the safety chain to ctx.destination; engine.output is not connected again.
     const scheduler = deps.createOfflineScheduler(ctx, engine);
+    // Engine.flush: scheduled notes have reached the audio thread (absent in test fakes).
+    const flush = () => Promise.resolve(typeof engine.flush === 'function' ? engine.flush() : undefined);
 
     if (typeof ctx.suspend === 'function') {
       const quantum = ctx.renderQuantumSize > 0 ? ctx.renderQuantumSize : 128;
@@ -96,7 +100,9 @@ export async function renderSongToWav(songDurationSec, deps, opts, onProgress, s
           fail(err);                       // leave the context suspended; it is released for GC
           return;
         }
-        ctx.resume().catch(() => {});
+        // Resume only once the new notes have reached worklet processors (pluck), or they
+        // would start late or not at all.
+        flush().then(() => ctx.resume()).catch(() => {});
       };
 
       if (!trySuspend(PROGRESS_STEP_SEC)) scheduleRest();
@@ -105,6 +111,7 @@ export async function renderSongToWav(songDurationSec, deps, opts, onProgress, s
       progress(null);
     }
 
+    await race(flush());
     const buffer = await race(ctx.startRendering());
     if (isAborted()) throw abortError();
     progress(1);

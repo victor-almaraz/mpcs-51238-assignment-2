@@ -67,7 +67,7 @@ How each control is built, its states and keyboard support, how it maps to desig
 | Master volume | native range, same taper, default −12 dB, max 0 dB | `aria-valuetext="−12.0 dB"`; muted state after Panic shown as text "Muted" |
 | Meter | `<meter>`-styled bar with peak and RMS, −60 to 0 dBFS; numeric peak as text | `role="img"` with `aria-label` updated at most once per second |
 | Limit badge | text "Limit" plus icon | shown while the pre-limiter peak exceeds the ceiling |
-| Panic | `<button aria-keyshortcuts="Escape">` with text "Panic" | behaviour in `audio-safety.md` |
+| Panic | `<button aria-pressed aria-keyshortcuts="Escape">` toggle with text "Panic", pressed while muted | click, Enter, Space or Escape mutes; only a pointer click (`detail > 0`) on the pressed toggle unmutes, or moving the master volume; `title` and a described-by hint say so (`audio-safety.md`) |
 | Start notice | native `<dialog>` + `showModal()` | shown before the first audio start per session; button "Start Audio" |
 | Level reduced banner | inline alert + "Restore Level" button | sustained-level duck (`audio-safety.md`) |
 | Record, Format, Render to WAV, render progress, Cancel | see `recording.md` | — |

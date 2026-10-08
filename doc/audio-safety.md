@@ -340,7 +340,8 @@ Controls are specified in `controls-and-accessibility.md`; placement in `layout-
 - **Start notice.** Before the first audio start in a session, a dialog reads: "Lower your device volume before starting. Headphones can reach harmful levels." Dismissal is held in memory for the session; nothing is stored.
 - **Master volume and meter.** Always visible. The meter reads peak and RMS from the post-limiter analyser once per animation frame, with 1 s peak hold, scale −60…0 dBFS.
 - **Limiting indicator.** A "Limit" text badge shows while the pre-limiter peak exceeds the ceiling.
-- **Panic.** A visible "Panic" button and the `Escape` key (when no menu or dialog is open). Panic stops the transport, calls `releaseAll()` (file and live voices), clears scheduled events and ramps `masterGain` to 0 over 10 ms. Audio stays muted until the user raises the master volume.
+- **Panic.** A visible "Panic" toggle button and the `Escape` key (when no menu or dialog is open). Panic stops the transport, calls `releaseAll()` (file and live voices), clears scheduled events and ramps `masterGain` to 0 over 10 ms. The toggle shows pressed while muted.
+- **Unmute.** Only a pointer click on the pressed Panic toggle, or moving the master volume, ends the mute. The master returns to its level with the slow rise (τ = 50 ms) and nothing restarts. No key unmutes: Escape only mutes, and a click synthesised from Enter or Space on the focused toggle (`event.detail === 0`) is ignored, so a Space meant for Play cannot bring sound back. Moving the master volume (keyboard-operable) is the keyboard path.
 - **Announcements.** Duck and reduced safety mode use the polite live region; panic and fault use the assertive live region.
 - No safety indicator uses the accent colour.
 
@@ -380,6 +381,7 @@ The suite runs on the dev-only page `/dev/safety/` (`src/components/dev/safety-c
 - **Case 1 uses velocity 100, not 127.** At 127, case 1 failed DC at worst-case levels (0.0014) and the sample step at default levels (0.267 at 44.1 kHz, 0.250 at 48 kHz). The step peak was at 3.481 s, the bright end of the cutoff sweep, not at a note onset. The DC came from 1 s windows cutting the periods of low saws. At velocity 100 the limiter still reaches the ceiling at worst-case levels, and every check passes (DC 0.00042, step 0.166 / 0.155).
 - Results on 2026-10-08, Chromium, 44.1 and 48 kHz: worst case 74/74, default 86/86.
 - **Cases 9–13** were added with the expanded params (filter envelope, FM fine, ADSR, vibrato, pick position and release, granular position and pitch spread, user samples). Results on 2026-10-08, Chromium, 44.1 and 48 kHz, cases 1–13: worst case 114/114, default 136/136. Largest sample step in cases 9–13 at default levels: 0.173 (case 12).
+- **Pluck in offline renders.** The audio-core tests (`/dev/core/`, `src/components/dev/core-cases.js`) found that pluck notes posted before an offline render started could be silent: worklet messages are asynchronous and the render can outrun them. Cases 3 and 12 only bound the level, so they passed regardless. Offline renders now wait for `Engine.flush()` (a ping/pong barrier, `audioworklet.md`) before rendering and before each resume. Re-run on 2026-10-08 with the barrier: worst case 114/114, default 136/136; pluck cases 3 and 12 now reach the ceiling.
 
 ## Unconfirmed behaviour
 - Handling of out-of-range samples at `destination` and the spec's NaN rule for AudioParam computed values were not checked against the current spec text.

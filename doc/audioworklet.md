@@ -93,13 +93,14 @@ registerProcessor('ks-processor', KSProcessor);
 - Main thread to processor: `node.port.postMessage({ type: 'on', pitch, vel, time, decay, source })`. `source` is `'file'` or `'live'`; `off` matches voices by pitch and source. `time` is in AudioContext seconds.
 - `on`:
   - The processor converts with `frame = Math.round(time * sampleRate)` and starts the voice when `currentFrame + i === frame` (sample-accurate).
-  - Messages arrive asynchronously; the 100 ms scheduler lookahead absorbs the delay.
+  - Messages arrive asynchronously; the 100 ms scheduler lookahead absorbs the delay in realtime.
+  - **Offline renders need a barrier.** An `OfflineAudioContext` renders faster than real time and can finish before the messages arrive: pluck notes posted before an offline render started were silent until this was found (2026-10-08, audio-core tests; the safety cases only bound the level, so they passed). `{type:'ping', id}` makes the processor reply `{type:'pong', id}` from `onmessage`; ports are ordered, so the pong proves every earlier message is queued. `Pluck.flush()` / `Engine.flush()` resolve on the pong (or after 1 s, so a missing reply never hangs), and every offline render awaits it before `startRendering()` and before each `resume()` after a `suspend()` (`offline-render.js`, the safety and core test pages).
   - Late events (`frame < currentFrame`) start at offset 0.
-- `off`: sets `releaseFrame`. From then on the processor multiplies ρ by 0.9 per pass.
+- `off` (with `release`): sets `releaseFrame`; from then on the loop gain is `min(ρ, 10^(−3/(release·f)))` (`synthesis-pluck.md`).
 - `allOff`: deactivates all voices at the next block (sent by `allNotesOff`).
 - Parameters:
   - `damping` and `brightness` are AudioParams: `node.parameters.get('damping').setTargetAtTime(...)`.
-  - Per-note values (decay) travel in the message.
+  - Per-note values (decay, pick position; release on note-off) travel in the message.
   - k-rate params arrive as `parameters.damping[0]`.
   - An a-rate param's array may have length 1 when the value is constant for the block, or the block length otherwise; k-rate arrays always have length 1. Code handles both lengths.
 

@@ -270,6 +270,7 @@ async function runCase(c, sampleRate, levels) {
   const extra = { faults: 0 };
   engine.bus.setHandler((e) => { if (e.type === 'fault') extra.faults++; });
   c.play(ctx, engine);
+  await engine.flush();                // pluck: note messages reach the worklet before rendering
   const buf = await ctx.startRendering();
   await new Promise((r) => setTimeout(r, 50));   // let worklet messages arrive
   return { checks: analyse(buf, c.id, extra, levels.checkSteps), reduced: engine.bus.reduced };

@@ -93,7 +93,7 @@ export default function Transport({ session, ui, song, songName, readingMidi, fi
               elapsedRef={elapsedRef}
             />
           </div>
-          <MasterSection ui={ui} onMaster={actions.master} onPanic={actions.panic} meterRef={meterRef} limitRef={limitRef} />
+          <MasterSection ui={ui} onMaster={actions.master} onPanic={actions.panic} onUnmute={actions.unmute} meterRef={meterRef} limitRef={limitRef} />
         </div>
         {/* Mobile: Song and the menu share the in-flow row under the header. lg: `contents`
             makes both direct items of the bar, and the menu is pushed to its right end. */}

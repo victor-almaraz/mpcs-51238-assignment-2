@@ -286,6 +286,7 @@ export default function SynthApp() {
     },
     master: (db) => session?.setMaster(db),
     panic: () => session?.panic(),
+    unmute: () => session?.unmute(),
     loadMidi,
     loadPatch,
     savePatch: () => {

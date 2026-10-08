@@ -361,7 +361,20 @@ export class Session {
     this.masterMuted = true;
     if (this.bus) this.bus.master.linearTo(0, this.ctx.currentTime, 0.01);
     this.onUi({ playing: false, masterMuted: true });
-    this.message('Panic: sound stopped. Move the master volume to unmute.', { assertive: true });
+    this.message('Panic: sound stopped. Click Panic again or move the master volume to unmute.', { assertive: true });
+  }
+
+  /**
+   * Ends a Panic: the master returns to its level with the slow rise (RISE_TAU), the same as
+   * raising the slider. Nothing restarts. The UI calls this only for a pointer click on the
+   * Panic toggle, never from a key (audio-safety.md "Safety UI").
+   */
+  unmute() {
+    if (!this.masterMuted) return;
+    this.masterMuted = false;
+    this.onUi({ masterMuted: false });
+    if (this.bus && this.audioState === 'running') this.bus.master.setTarget(this.masterTarget(), this.ctx.currentTime, RISE_TAU);
+    this.message('Sound restored');
   }
 
   /** Post-limiter peak/RMS and the pre-limiter limiting flag, read once per animation frame. */

@@ -8,7 +8,8 @@
 //   {type:'steal', id, time}                   5 ms fade from `time`, then free the voice;
 //                                              a steal due before the voice starts cancels it
 //   {type:'allOff'}                            10 ms fade on every voice; drop pending starts
-// Messages out: {type:'fault'}
+//   {type:'ping', id}                          reply {type:'pong', id} at once (offline sync barrier)
+// Messages out: {type:'fault'}, {type:'pong', id}
 //
 // Twice as many slots as the per-widget logical cap (16), so voices that are still fading or
 // ringing out after a release are not overwritten by new notes.
@@ -52,7 +53,10 @@ class KSProcessor extends AudioWorkletProcessor {
     this.ageCounter = 0;
     this.faulted = false;
     this.port.onmessage = (e) => {
-      if (this.queue.length < QUEUE_CAP) this.queue.push(e.data);
+      const m = e.data;
+      // ping → pong: ports are ordered, so the reply proves every earlier message is queued.
+      if (m && m.type === 'ping') { this.port.postMessage({ type: 'pong', id: m.id }); return; }
+      if (this.queue.length < QUEUE_CAP) this.queue.push(m);
     };
   }
 

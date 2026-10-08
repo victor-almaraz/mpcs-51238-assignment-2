@@ -194,6 +194,11 @@ export class Engine {
     for (const e of this.entries.values()) if (e.gain) e.gain.setTarget(0, t, GAIN_TAU);
   }
 
+  /** Resolves when every instrument's scheduled notes have reached the audio thread. Offline only. */
+  flush() {
+    return Promise.all([...this.entries.values()].map((e) => (e.inst ? e.inst.flush() : null)));
+  }
+
   pump(until) {
     for (const e of this.entries.values()) if (e.inst) e.inst.pump(until);
   }

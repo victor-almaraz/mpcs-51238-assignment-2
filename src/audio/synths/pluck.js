@@ -16,10 +16,38 @@ export class Pluck extends Instrument {
       processorOptions: { seed: opts.seed || 1 },
     });
     this.node.connect(this.polyNode);
-    this.node.port.onmessage = (e) => { if (e.data && e.data.type === 'fault') opts.onFault?.(); };
+    this.pings = new Map();            // ping id → resolve (flush)
+    this.pingId = 0;
+    this.node.port.onmessage = (e) => {
+      const d = e.data;
+      if (!d) return;
+      if (d.type === 'fault') opts.onFault?.();
+      else if (d.type === 'pong') this.pings.get(d.id)?.();
+    };
     this.node.onprocessorerror = () => opts.onError?.();
     this.applyParam('damping', this.params.damping, ctx.currentTime);
     this.applyParam('brightness', this.params.brightness, ctx.currentTime);
+  }
+
+  /**
+   * Resolves once the processor has received every earlier message. Port messages are
+   * asynchronous, and an offline render can run past a note's start (or finish) before its
+   * message arrives, so offline renders await this before rendering and before each resume.
+   * Resolves after `timeoutMs` regardless, so a missing reply never hangs a render.
+   */
+  flush(timeoutMs = 1000) {
+    if (this.disposed) return Promise.resolve();
+    const id = ++this.pingId;
+    return new Promise((resolve) => {
+      const done = () => {
+        clearTimeout(timer);
+        this.pings.delete(id);
+        resolve();
+      };
+      const timer = setTimeout(done, timeoutMs);
+      this.pings.set(id, done);
+      this.node.port.postMessage({ type: 'ping', id });
+    });
   }
 
   startVoice(pitch, velocity, t) {

@@ -79,6 +79,11 @@ export class Instrument {
     return out;
   }
 
+  /** Resolves when scheduled work has reached the audio thread (pluck's worklet); see Pluck.flush. */
+  flush() {
+    return Promise.resolve();
+  }
+
   /** Hook for instruments that schedule work ahead (granular). */
   pump() {}
 

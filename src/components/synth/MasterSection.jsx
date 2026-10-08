@@ -1,6 +1,7 @@
 'use client';
 
-import { Badge, Button, Meter } from '@/design-systems/meta';
+import { useId } from 'react';
+import { Badge, Meter, ToggleButton } from '@/design-systems/meta';
 import { VOLUME } from '@/audio/synths/param-defs';
 import VolumeSlider from './widgets/VolumeSlider';
 
@@ -8,10 +9,20 @@ import VolumeSlider from './widgets/VolumeSlider';
  * Master volume, meter, Limit badge and Panic (audio-safety.md "Safety UI"). The meter and
  * the Limit badge are driven per animation frame by Transport through refs.
  *
+ * Panic is a toggle, pressed while muted. Pressing it (click, Enter, Space, or Escape
+ * anywhere) mutes. Unmuting takes a pointer click: a click synthesised from the keyboard
+ * (`detail === 0`) is ignored, so no key can bring sound back. Moving the master volume
+ * also unmutes, which keeps a keyboard path.
+ *
  * On mobile the wrapper is `display: contents` so Panic can join the first row of the
  * bottom bar (order-2) while the volume and meter form the second row (order-3).
  */
-export default function MasterSection({ ui, onMaster, onPanic, meterRef, limitRef }) {
+export default function MasterSection({ ui, onMaster, onPanic, onUnmute, meterRef, limitRef }) {
+  const hintId = useId();
+  const onPanicClick = (e) => {
+    if (!ui.masterMuted) onPanic();
+    else if (e.detail > 0) onUnmute();
+  };
   return (
     <div className="contents lg:flex lg:flex-wrap lg:items-center lg:gap-3">
       <div className="order-3 flex w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-1 lg:order-none lg:w-auto lg:flex-nowrap">
@@ -33,9 +44,22 @@ export default function MasterSection({ ui, onMaster, onPanic, meterRef, limitRe
         {ui.masterMuted && <span className="text-sm font-semibold">Muted</span>}
         {ui.reducedSafety && <span className="text-sm">Reduced safety mode</span>}
       </div>
-      <Button size="lg" onClick={onPanic} aria-keyshortcuts="Escape" className="order-2 lg:order-none">
+      <ToggleButton
+        size="lg"
+        pressed={ui.masterMuted}
+        onClick={onPanicClick}
+        aria-keyshortcuts="Escape"
+        aria-describedby={ui.masterMuted ? hintId : undefined}
+        title={ui.masterMuted ? 'Click to unmute, or move the master volume' : undefined}
+        className="order-2 lg:order-none"
+      >
         Panic
-      </Button>
+      </ToggleButton>
+      {ui.masterMuted && (
+        <span id={hintId} className="sr-only">
+          Muted. Click to unmute, or move the master volume.
+        </span>
+      )}
     </div>
   );
 }

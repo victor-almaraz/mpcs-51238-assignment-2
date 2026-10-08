@@ -38,7 +38,7 @@ export default function SongControls({ ui, song, songName, readingMidi, posRef, 
         disabled={!song || rendering || recording || ui.masterMuted}
         title={
           recording ? 'Stop recording to render'
-            : ui.masterMuted ? 'Muted after Panic: move the master volume to render' : undefined
+            : ui.masterMuted ? 'Muted after Panic: click Panic or move the master volume to render' : undefined
         }
       >
         Render to WAV
