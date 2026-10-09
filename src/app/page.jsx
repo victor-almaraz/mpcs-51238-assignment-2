@@ -23,6 +23,14 @@ export default function HomePage() {
                 Synth rack
               </Link>
             </li>
+            <li>
+              <Link
+                href="/mood-boards/contrast-form/"
+                className="inline-flex min-h-6 items-center underline underline-offset-4 rounded-ds hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+              >
+                Mood board 2: Contrast/Form
+              </Link>
+            </li>
           </ul>
         </nav>
       </div>
