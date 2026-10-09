@@ -2,7 +2,7 @@
 // Objects are built from the PARAM_DEFS whitelist only; parsed objects are never spread or
 // assigned, so `__proto__` keys and other prototype tricks have no effect.
 
-import { PARAM_DEFS, VOLUME, coerceParam, coerceVolume } from '../audio/synths/param-defs.js';
+import { PARAM_DEFS, TUNING_DEFS, VOLUME, coerceParam, coerceVolume } from '../audio/synths/param-defs.js';
 import { MAX_WIDGETS, PatchError } from './schema.js';
 import { migrate } from './migrate.js';
 
@@ -100,7 +100,7 @@ export function parsePatch(text, song) {
     // Sample audio is never stored in patches (patch-format.md); the name says which to load.
     if (type === 'granular' && params.source === 'sample') {
       const name = typeof w.sampleName === 'string' && w.sampleName ? ` '${w.sampleName.slice(0, MAX_LABEL_LENGTH)}'` : '';
-      warnings.push(`${prefix}sample${name} is not stored in patches; load it again`);
+      warnings.push(`${prefix}file${name} is not stored in patches; load it again`);
     }
 
     const volumeDb = coerceVolume(w.volumeDb, VOLUME.widgetDefault);
@@ -119,7 +119,14 @@ export function parsePatch(text, song) {
       partLabel = null;
     }
 
-    widgets.push({ type, muted: w.muted === true, solo: w.solo === true, volumeDb, part, requestedPart, partLabel, params });
+    const tuning = {};
+    for (const def of TUNING_DEFS) {
+      const present = hasOwn(w, def.name);
+      tuning[def.name] = coerceParam(def, present ? w[def.name] : undefined);
+      if (present && tuning[def.name] !== w[def.name]) warnings.push(`${prefix}${def.label} adjusted`);
+    }
+
+    widgets.push({ type, muted: w.muted === true, solo: w.solo === true, locked: w.locked === true, volumeDb, part, requestedPart, partLabel, ...tuning, params });
   }
   return { widgets, warnings };
 }

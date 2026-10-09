@@ -102,7 +102,7 @@ export async function renderSongToWav(songDurationSec, deps, opts, onProgress, s
         }
         // Resume only once the new notes have reached worklet processors (pluck), or they
         // would start late or not at all.
-        flush().then(() => ctx.resume()).catch(() => {});
+        flush().then(() => { if (!isAborted()) return ctx.resume(); }).catch(() => {});   // a cancel during the flush stays suspended
       };
 
       if (!trySuspend(PROGRESS_STEP_SEC)) scheduleRest();

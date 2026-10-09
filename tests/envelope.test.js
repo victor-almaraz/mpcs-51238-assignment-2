@@ -79,13 +79,13 @@ test('scheduleRelease mid-attack with cancelAndHoldAtTime', () => {
   assert.equal(v.tau, 0.01);
 });
 
-test('scheduleRelease mid-attack without cancelAndHoldAtTime holds at the model value', () => {
+test('scheduleRelease mid-attack without cancelAndHoldAtTime ramps to the model value', () => {
   const p = fakeParam({ hold: false, trapValue: true });
   const v = voice();
   scheduleRelease(p, v, 1.05, 0.01);
   assertCalls(p.calls, [
     ['cancelScheduledValues', 1.05],
-    ['setValueAtTime', 0.15, 1.05],
+    ['linearRampToValueAtTime', 0.15, 1.05],
     ['setTargetAtTime', 0, 1.05, 0.01],
   ]);
   assert.equal(v.offTime, 1.05);
@@ -156,4 +156,10 @@ test('scheduleRelease during the decay starts from the decaying level', () => {
   scheduleRelease(p, v, 1.2, 0.05);
   close(v.relFrom, 0.15 + 0.15 * Math.exp(-1));
   assertCalls(p.calls, [['cancelScheduledValues', 1.2], ['setValueAtTime', v.relFrom, 1.2], ['setTargetAtTime', 0, 1.2, 0.05]]);
+});
+
+test('holdAt with inRamp uses cancelAndHoldAtTime when available', () => {
+  const p = fakeParam({ hold: true, trapValue: true });
+  holdAt(p, 2, 0.5, true);
+  assertCalls(p.calls, [['cancelAndHoldAtTime', 2]]);
 });

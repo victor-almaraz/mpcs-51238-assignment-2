@@ -3,10 +3,11 @@
 //
 // kind: 'number' | 'enum' | 'array'
 // scale: 'lin' | 'log' | 'pow3' | 'radio'
-// unit: 'Hz' | 's' | 'dB' | 'ratio' | 'offset' | 'index' | 'per-s' | 'fraction' | 'oct' | 'cents' | ''
+// unit: 'Hz' | 's' | 'dB' | 'ratio' | 'offset' | 'index' | 'per-s' | 'fraction' | 'oct' | 'cents'
+//       | 'oct-shift' | 'cent-shift' (signed tuning) | ''
 //
-// New params default to the value that reproduces the sound from before they existed, so
-// older patches (which omit them) sound the same (patch-format.md).
+// Modulation and shaping params default to their neutral value, so a patch that omits them
+// plays the plain sound of its synth type (synthesis-conventions.md, patch-format.md).
 
 export const SYNTH_TYPES = ['subtractive', 'fm', 'additive', 'pluck', 'granular'];
 
@@ -77,6 +78,21 @@ export const PARAM_DEFS = {
     release(0.4),
   ],
 };
+
+/**
+ * Per-widget tuning, shown in the widget footer beside the volume (every synth type). The
+ * shift applies to notes that start after a change; the shifted pitch is clamped to MIDI
+ * 0–127 (instrument.js).
+ */
+export const TUNING_DEFS = [
+  { name: 'octave', label: 'Octave', unit: 'oct-shift', kind: 'number', min: -3, max: 3, default: 0, scale: 'lin', step: 1 },
+  { name: 'cents', label: 'Cents', unit: 'cent-shift', kind: 'number', min: -100, max: 100, default: 0, scale: 'lin', step: 1 },
+];
+
+/** Semitones of pitch shift for a widget's tuning fields. */
+export function tuningSemitones(w) {
+  return 12 * (w.octave || 0) + (w.cents || 0) / 100;
+}
 
 /** Widget and master volume: −60 … 0 dB in 0.5 dB steps, plus Off (audio-safety.md). */
 export const VOLUME = { min: -60, max: 0, step: 0.5, widgetDefault: -6, masterDefault: -12 };

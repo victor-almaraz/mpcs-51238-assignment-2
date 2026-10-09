@@ -211,3 +211,34 @@ test('sample attaches a loaded file to a granular widget and selects it as the s
   const other = rackReducer(s, { type: 'sample', id: s.widgets[1].id, sample });
   assert.equal(other.widgets[1].sample, null);                // not granular: unchanged
 });
+
+test('tune clamps octave and cents and snaps to whole steps', () => {
+  const s = addAll('fm');
+  const id = s.widgets[0].id;
+  assert.equal(s.widgets[0].octave, 0);
+  assert.equal(s.widgets[0].cents, 0);
+  let r = rackReducer(s, { type: 'tune', id, name: 'octave', value: 9 });
+  assert.equal(r.widgets[0].octave, 3);
+  r = rackReducer(r, { type: 'tune', id, name: 'cents', value: -33.6 });
+  assert.equal(r.widgets[0].cents, -34);
+  assert.equal(rackReducer(r, { type: 'tune', id, name: 'nope', value: 1 }), r);
+});
+
+test('a locked widget ignores param, harmonic, sample and tuning changes but not mute or unlock', () => {
+  const s = addAll('additive', 'granular');
+  const [a, g] = s.widgets;
+  const locked = rackReducer(rackReducer(s, { type: 'update', id: a.id, fields: { locked: true } }), { type: 'update', id: g.id, fields: { locked: true } });
+  const after = [
+    { type: 'param', id: a.id, name: 'attack', value: 1 },
+    { type: 'harmonic', id: a.id, index: 0, value: 0 },
+    { type: 'tune', id: a.id, name: 'octave', value: 2 },
+    { type: 'sample', id: g.id, sample: { name: 'x.wav', buffer: {}, seconds: 1 } },
+  ].reduce(rackReducer, locked);
+  assert.deepEqual(after.widgets[0].params, a.params);
+  assert.equal(after.widgets[0].octave, 0);
+  assert.equal(after.widgets[1].sample, null);
+  const muted = rackReducer(after, { type: 'update', id: a.id, fields: { muted: true } });
+  assert.equal(muted.widgets[0].muted, true);
+  const unlocked = rackReducer(muted, { type: 'update', id: a.id, fields: { locked: false } });
+  assert.equal(rackReducer(unlocked, { type: 'param', id: a.id, name: 'attack', value: 1 }).widgets[0].params.attack, 1);
+});

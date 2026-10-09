@@ -1,7 +1,13 @@
-// Rack state: widgets (type, params, part, mute/solo, volume, live arming) and its reducer.
-// Arming and widget names are session state; patches store the rest (patch-format.md).
+// Rack state: widgets (type, params, part, mute/solo, volume, tuning, lock, live arming) and its reducer.
+// Arming, collapse, samples and widget names are session state; patches store the rest
+// (patch-format.md). A locked widget ignores param, harmonic, sample and tuning actions.
 
-import { SYNTH_INFO, VOLUME, coerceParam, defaultParams, getDef } from '../audio/synths/param-defs.js';
+import { SYNTH_INFO, TUNING_DEFS, VOLUME, coerceParam, defaultParams, getDef } from '../audio/synths/param-defs.js';
+
+const TUNING = Object.fromEntries(TUNING_DEFS.map((d) => [d.name, d]));
+
+/** Applies `fn` to the widget with `id` unless it is locked. */
+const editable = (state, id, fn) => ({ widgets: state.widgets.map((w) => (w.id === id && !w.locked ? fn(w) : w)) });
 
 let nextId = 1;
 
@@ -33,6 +39,10 @@ export function createWidget(type, widgets, fields = {}) {
     partLabel: fields.partLabel ?? null,
     params: fields.params ?? defaultParams(type),
     sample: null,                      // granular only: { name, buffer, seconds }; never in patches
+    octave: fields.octave ?? 0,
+    cents: fields.cents ?? 0,
+    locked: fields.locked === true,
+    collapsed: false,
   };
 }
 
@@ -56,32 +66,25 @@ export function rackReducer(state, action) {
       return { widgets: action.widgets };
     case 'sample':
       // A loaded file becomes the granular source at once.
-      return {
-        widgets: state.widgets.map((w) => (w.id === action.id && w.type === 'granular'
-          ? { ...w, sample: action.sample, params: { ...w.params, source: 'sample' } }
-          : w)),
-      };
+      return editable(state, action.id, (w) => (w.type === 'granular'
+        ? { ...w, sample: action.sample, params: { ...w.params, source: 'sample' } }
+        : w));
     case 'update':
       return { widgets: state.widgets.map((w) => (w.id === action.id ? { ...w, ...action.fields } : w)) };
-    case 'param': {
-      return {
-        widgets: state.widgets.map((w) => {
-          if (w.id !== action.id) return w;
-          const def = getDef(w.type, action.name);
-          if (!def) return w;
-          return { ...w, params: { ...w.params, [action.name]: coerceParam(def, action.value) } };
-        }),
-      };
-    }
-    case 'harmonic': {
-      return {
-        widgets: state.widgets.map((w) => {
-          if (w.id !== action.id) return w;
-          const h = w.params.harmonics.slice();
-          h[action.index] = action.value;
-          return { ...w, params: { ...w.params, harmonics: coerceParam(getDef(w.type, 'harmonics'), h) } };
-        }),
-      };
+    case 'param':
+      return editable(state, action.id, (w) => {
+        const def = getDef(w.type, action.name);
+        return def ? { ...w, params: { ...w.params, [action.name]: coerceParam(def, action.value) } } : w;
+      });
+    case 'harmonic':
+      return editable(state, action.id, (w) => {
+        const h = w.params.harmonics.slice();
+        h[action.index] = action.value;
+        return { ...w, params: { ...w.params, harmonics: coerceParam(getDef(w.type, 'harmonics'), h) } };
+      });
+    case 'tune': {
+      const def = TUNING[action.name];
+      return def ? editable(state, action.id, (w) => ({ ...w, [def.name]: coerceParam(def, action.value) })) : state;
     }
     case 'replace': {
       const widgets = [];

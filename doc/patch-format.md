@@ -18,9 +18,11 @@ The JSON patch schema, save/load, validation, migration and errors. Storage is *
 ```
 - `part` is `"all"` or a part key `"t<track>c<channel>"` (see "Parts" in `midi-decoding.md`).
 - `partLabel` (optional) is the part's label at save time. The UI uses it to explain a fallback ("Part 'Bass' not in this file").
+- `octave` (−3 to 3) and `cents` (−100 to 100), optional: the widget's tuning (`layout-and-responsive.md` "Widget anatomy"). Written only when non-zero; missing means 0; out-of-range values are clamped with an "Octave adjusted" or "Cents adjusted" warning.
+- `locked` (optional): `true` for a locked widget. Written only when set; any other value means unlocked. Collapse is session state and is not stored.
 - Live-input arming is session state and is not stored (`live-input.md`).
-- `sampleName` (optional, granular only) is the name of the widget's user sample at save time. The audio itself is never stored: patches stay small text files, and samples are user files. Loading a patch whose granular source is `"sample"` adds the warning "Widget N: sample 'name' is not stored in patches; load it again", and the widget is silent until a file is loaded (`synthesis-granular.md` "User sample").
-- Params added after version 1 (filter env, decay, sustain, fine, vibrato, pick position, release, position, pitch spread, granular attack and release) need no version bump: older patches omit them, they take their defaults, and those defaults reproduce the earlier sound. The one exception is the pluck release (0.1 s), which replaces a fixed, pitch-dependent mute (`synthesis-pluck.md`). Missing params never produce an "adjusted" warning.
+- `sampleName` (optional, granular only) is the name of the widget's user sample at save time. The audio itself is never stored: patches stay small text files, and samples are user files. Loading a patch whose granular source is `"sample"` adds the warning "Widget N: file 'name' is not stored in patches; load it again", and the widget is silent until a file is loaded (`synthesis-granular.md` "User sample").
+- A patch may omit any param. A missing param takes its default (`synthesis-conventions.md`) and produces no "adjusted" warning.
 - Param names and ranges come from the single `PARAM_DEFS` table (`synthesis-conventions.md`). Never duplicate the ranges.
 
 ## Validation (untrusted input)
@@ -61,7 +63,7 @@ function parsePatch(text: string, song: Song | null): { widgets: WidgetState[]; 
 ## Versioning and migration
 - `CURRENT_VERSION = 1`. `migrate` applies the steps `v1 → v2 → …` in order. Each step is a pure function with its own test.
 - A version greater than `CURRENT_VERSION` raises the error "Made with a newer version".
-- Bump the version whenever a param is renamed, removed, or changes unit or scale. Adding a param whose default keeps the earlier sound does not need a bump.
+- Bump the version whenever a param is renamed, removed, or changes unit or scale. Adding a param needs no bump when its default leaves the sound of existing patches unchanged.
 
 ## Save
 ```ts
@@ -78,7 +80,7 @@ function savePatch(state: RackState) {
 
 ## Load
 - Flow: `<input type="file" accept=".json,application/json">`, then `file.text()`, then `parsePatch`.
-- No confirmation (GNOME HIG: undo over confirm). If the rack was not empty, the "Patch loaded" toast offers Undo while it is visible. Undo puts the earlier widgets back unchanged through the same patch-load ramp and shows "Previous rack restored".
+- No confirmation (GNOME HIG: undo over confirm). If the rack was not empty, the "Patch loaded" toast offers Undo while it is visible. Undo puts the replaced widgets back unchanged through the same patch-load ramp and shows "Previous rack restored".
 - Apply: `releaseAll()`, then the patch-load ramp in `audio-safety.md` (outputs to 0, rebuild widgets, ramp back). Loading never starts notes.
 - Reset `input.value = ''` after each load, so choosing the same file again still fires `change`.
 - States:

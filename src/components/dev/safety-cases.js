@@ -35,15 +35,10 @@ function at(ctx, t, fn) {
 
 const CASES = [
   {
-    // Case 1 originally used velocity 127 (as the doc's case table says) and failed two checks
-    // on 2026-10-08, at both 44.1 and 48 kHz:
-    //   - worst-case levels: DC per 1 s window 0.0014 (limit 1e-3)
-    //   - default levels:    sample step 0.267 / 0.250 (limit 0.25), largest at 3.481 s
-    // Neither was a defect. The step peak sat at the bright end of the cutoff sweep, far from
-    // any note onset (all notes start at 0), and the DC came from 1 s windows cutting the
-    // periods of the 36 Hz-and-up saws. The ceiling, NaN and onset checks passed throughout.
-    // Velocity 100 (−4.2 dB) keeps the limiter at the ceiling under worst-case levels and
-    // passes every check: DC 0.00042, step 0.166 / 0.155.
+    // Velocity 100, not 127 (audio-safety.md "Cases"). At 127, 1 s DC windows cut the periods
+    // of the 36 Hz-and-up saws (DC 0.0014 > 1e-3 at worst-case levels), and the bright end of
+    // the sweep, far from any onset, steps 0.267 at default levels; neither is a defect.
+    // Velocity 100 (−4.2 dB) still holds the limiter at the ceiling under worst-case levels.
     id: 1,
     name: '64 saw voices, vel 100, max resonance, cutoff swept',
     widgets: () => [0, 1, 2, 3].map(() => widget('subtractive', { params: { waveform: 'sawtooth', cutoff: 40, resonance: 20 } })),
@@ -140,8 +135,8 @@ const CASES = [
       dc.start(0);
     },
   },
-  // Cases 9–12 cover the parameters added after the doc's case table (filter envelope, FM
-  // fine, vibrato, pick position and release, granular position and pitch spread, user samples).
+  // Cases 9–13 cover the filter envelope, FM fine, ADSR, vibrato, pick position and release,
+  // granular position and pitch spread, and user samples.
   {
     id: 9,
     name: 'Subtractive, 16 voices, 6-octave filter env at max resonance, retriggered every 250 ms',

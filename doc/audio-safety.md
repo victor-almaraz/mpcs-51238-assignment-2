@@ -340,30 +340,45 @@ Controls are specified in `controls-and-accessibility.md`; placement in `layout-
 - **Start notice.** Before the first audio start in a session, a dialog reads: "Lower your device volume before starting. Headphones can reach harmful levels." Dismissal is held in memory for the session; nothing is stored.
 - **Master volume and meter.** Always visible. The meter reads peak and RMS from the post-limiter analyser once per animation frame, with 1 s peak hold, scale −60…0 dBFS.
 - **Limiting indicator.** A "Limit" text badge shows while the pre-limiter peak exceeds the ceiling.
-- **Panic.** A visible "Panic" toggle button and the `Escape` key (when no menu or dialog is open). Panic stops the transport, calls `releaseAll()` (file and live voices), clears scheduled events and ramps `masterGain` to 0 over 10 ms. The toggle shows pressed while muted.
-- **Unmute.** Only a pointer click on the pressed Panic toggle, or moving the master volume, ends the mute. The master returns to its level with the slow rise (τ = 50 ms) and nothing restarts. No key unmutes: Escape only mutes, and a click synthesised from Enter or Space on the focused toggle (`event.detail === 0`) is ignored, so a Space meant for Play cannot bring sound back. Moving the master volume (keyboard-operable) is the keyboard path.
+- **Panic.** A visible "Panic" button and the `Escape` key (when no menu or dialog is open). Panic stops the transport, calls `releaseAll()` (file and live voices), clears scheduled events and ramps `masterGain` to 0 over 10 ms. While muted, the same button reads "Reset" and the master section shows "Muted".
+- **Reset.** Only a pointer click on Reset, or moving the master volume, ends the mute. The click must be a single click (`event.detail === 1`), and Reset is ignored for 1 s after a Panic, so a double-click or repeated fast clicks on Panic never unmute. The master returns to its level with the slow rise (τ = 50 ms) and nothing restarts. No key unmutes: Escape only mutes, and a click synthesised from Enter or Space on the focused button (`event.detail === 0`) is ignored, so a Space meant for Play cannot bring sound back. Moving the master volume (keyboard-operable) is the keyboard path.
 - **Announcements.** Duck and reduced safety mode use the polite live region; panic and fault use the assertive live region.
 - No safety indicator uses the accent colour.
 
 ## Acceptance criteria
-Offline renders (`OfflineAudioContext`, 44.1 and 48 kHz, stereo) through the real `buildMasterBus` chain, 4 s each:
+Offline renders (`OfflineAudioContext`, 44.1 and 48 kHz, stereo) through the real `buildMasterBus` chain, 4 s each. The suite runs on the development page `/dev/safety/` (`src/components/dev/safety-cases.js`).
 
+### Levels
+Each case runs at two levels:
+
+| Level | Widget volume | Master volume | Checks |
+|---|---|---|---|
+| Worst case | 0 dB (unless the case sets it) | 0 dB | All except the sample-to-sample step |
+| Default | −6 dB | −12 dB | All |
+
+The step check runs at default levels only. At worst-case levels, bright full-scale content exceeds 0.25 without any click: a 12.5 kHz sine at 0.3 peak has a step of 2 · 0.3 · sin(π · 12543 / 44100) ≈ 0.47.
+
+### Cases
 | Case | Content |
 |---|---|
-| 1 | 64 voices, sawtooth, velocity 127, lowpass at max resonance swept 20 Hz → max |
+| 1 | 64 voices (4 widgets × 16), sawtooth, velocity 100, lowpass at max resonance swept from 40 Hz to min(16 kHz, 0.45·fs) |
 | 2 | FM at max index and ratio, highest note |
-| 3 | Pluck at ρ = 0.9999, lowest and highest notes, 16 voices retriggered every 10 ms |
-| 4 | Granular, 4 voices × 64 grains, minimum grain size |
-| 5 | Additive, all partials at max |
+| 3 | Pluck at max decay (ρ up to 0.9999), lowest and highest notes, retriggered every 10 ms |
+| 4 | Granular, 4 voices, max grain size and density, full spray (the 64-grain cap is reached) |
+| 5 | Additive, all partials at max, 16 voices |
 | 6 | Patch load and solo toggle mid-render |
 | 7 | NaN injected at 1.0 s |
 | 8 | Constant DC input of 0.5 |
 | 9 | Subtractive, 16 voices, 6-octave filter envelope at max resonance, retriggered every 250 ms |
 | 10 | FM at max index, ratio 12 + fine 0.5, decay to sustain 0, low and highest notes |
 | 11 | Additive, all partials at max, 16 voices, vibrato 100 cents at 12 Hz |
-| 12 | Pluck, pick position 0.5, release 2 s, 16 voices retriggered every 10 ms with note-offs |
+| 12 | Pluck, pick position 0.5, release 2 s, retriggered every 10 ms with note-offs |
 | 13 | Granular user sample (conditioned full-scale square with DC), 4 high voices, max density, size, spray and pitch spread |
 
+- Case 1 uses velocity 100. At velocity 127 the low saws make the 1 s DC windows exceed 1e-3 at worst-case levels, and the bright end of the sweep exceeds the step limit at default levels, neither of which is a defect. At velocity 100 the limiter still holds the output at the ceiling under worst-case levels.
+- Every offline render awaits `Engine.flush()` before `startRendering()` (`audioworklet.md` "Message protocol"), so the pluck cases (3 and 12) play every note.
+
+### Assertions
 | Assertion | Threshold |
 |---|---|
 | Maximum \|sample\| | ≤ 0.8913 + 1e-6 |
@@ -371,17 +386,14 @@ Offline renders (`OfflineAudioContext`, 44.1 and 48 kHz, stereo) through the rea
 | DC (mean per 1 s window after 0.1 s) | \|mean\| ≤ 1e-3 |
 | Onset peak (first 128 frames) | ≤ 0.02 |
 | Fade-in complete | Within 1 % of steady state by 60 ms |
-| Sample-to-sample step (cases 1–6, 9–13) | ≤ 0.25 (project limit) |
+| Sample-to-sample step (cases 1–6, 9–13; default levels) | ≤ 0.25 (project limit) |
 | Case 7 | Zero output for ≥ 250 ms from the fault frame; `fault` posted; recovery fade ≤ 50 ms |
 | Below-ceiling transparency | −4 dBFS input with `dcHz: 0`: output equals input delayed by L frames within 1e-4 |
 
-### Implementation notes (2026-10-08)
-The suite runs on the dev-only page `/dev/safety/` (`src/components/dev/safety-cases.js`) at two levels: worst case (widget 0 dB, master 0 dB) and default (widget −6 dB, master −12 dB).
-- **Sample-step check runs at default levels only.** At worst-case levels, bright full-scale content exceeds 0.25 by itself. A single 12.5 kHz sine at 0.3 peak has a step of 2 · 0.3 · sin(π · 12543 / 44100) ≈ 0.47, measured 0.468. That is not a click. The ceiling, non-finite, DC and onset checks run at both levels.
-- **Case 1 uses velocity 100, not 127.** At 127, case 1 failed DC at worst-case levels (0.0014) and the sample step at default levels (0.267 at 44.1 kHz, 0.250 at 48 kHz). The step peak was at 3.481 s, the bright end of the cutoff sweep, not at a note onset. The DC came from 1 s windows cutting the periods of low saws. At velocity 100 the limiter still reaches the ceiling at worst-case levels, and every check passes (DC 0.00042, step 0.166 / 0.155).
-- Results on 2026-10-08, Chromium, 44.1 and 48 kHz: worst case 74/74, default 86/86.
-- **Cases 9–13** were added with the expanded params (filter envelope, FM fine, ADSR, vibrato, pick position and release, granular position and pitch spread, user samples). Results on 2026-10-08, Chromium, 44.1 and 48 kHz, cases 1–13: worst case 114/114, default 136/136. Largest sample step in cases 9–13 at default levels: 0.173 (case 12).
-- **Pluck in offline renders.** The audio-core tests (`/dev/core/`, `src/components/dev/core-cases.js`) found that pluck notes posted before an offline render started could be silent: worklet messages are asynchronous and the render can outrun them. Cases 3 and 12 only bound the level, so they passed regardless. Offline renders now wait for `Engine.flush()` (a ping/pong barrier, `audioworklet.md`) before rendering and before each resume. Re-run on 2026-10-08 with the barrier: worst case 114/114, default 136/136; pluck cases 3 and 12 now reach the ceiling.
+Every check passes at both sample rates: 114 checks at worst-case levels and 136 at default levels.
+
+### Functional tests
+The safety cases bound levels; they do not check that sound is produced. The audio-core tests on `/dev/core/` (`src/components/dev/core-cases.js`) check behaviour through the same chain: every synth is silent before a note, sounds during it and is silent after its release; A4 measures 440 Hz (±0.5 %) at 44.1 and 48 kHz; volume, velocity and sustain levels; each param's effect; determinism; voice caps; mute and solo; and Render to WAV per synth type. Every check passes (45 tests, 99 checks).
 
 ## Unconfirmed behaviour
 - Handling of out-of-range samples at `destination` and the spec's NaN rule for AudioParam computed values were not checked against the current spec text.

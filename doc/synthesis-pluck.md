@@ -34,7 +34,7 @@ The pluck algorithm and its parameters. The AudioWorklet that runs it (file layo
   - Subtract the burst's mean at excitation.
   - Run a DC blocker on the output: `y = x − x1 + 0.995·y1`.
 - **Pick position:** the comb removes harmonics with a node at the pick point (k = N/2 removes the even harmonics). It is applied to the burst before the mean is removed and the burst is scaled to the velocity peak, so level does not depend on position.
-- **Release (muting):** at the note-off frame the loop gain switches to the release's ρ, which is never above the decay's, so a release can only shorten the ring. The main thread ends the logical voice `2 × release + 50 ms` later (below −120 dB). This replaces the earlier fixed "ρ × 0.9 per pass", whose length depended on pitch.
+- **Release (muting):** at the note-off frame the loop gain glides to the release's ρ (per-sample, τ ≈ 5 ms, so a note-off never steps the level), which is never above the decay's, so a release can only shorten the ring. The main thread ends the logical voice `2 × release + 50 ms` later (below −120 dB).
 - **No retuning:** M is fixed for the life of a voice; changing it on a sounding voice clicks.
 - **Stability:** loop gain stays below 1 at all frequencies. The two-point average has peak gain 1, so ρ ≤ 0.9999 is sufficient; any added loop filter has peak gain ≤ 1 (`audio-safety.md`).
 - Cost: about 6 multiply-adds per sample per voice, all inside one node.

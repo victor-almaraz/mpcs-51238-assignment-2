@@ -25,6 +25,7 @@ export class Instrument {
     this.polyNode.connect(this.output);
     this.poly = new TrackedParam(this.polyNode.gain, 1);
     this.params = defaultParams(type);
+    this.detune = 0;                   // semitones from the widget's tuning (setDetune)
     this.disposed = false;
   }
 
@@ -32,7 +33,9 @@ export class Instrument {
     if (this.disposed) return;
     const t = Math.max(time, this.ctx.currentTime);
     this.pool.makeRoom(this, this.cap, t);
-    const v = this.startVoice(pitch, velocity, t);
+    // Tuning shifts the sounding pitch; matching (noteOff) keeps the played pitch.
+    const sounding = Math.min(127, Math.max(0, pitch + this.detune));
+    const v = this.startVoice(sounding, velocity, t);
     if (!v) return;
     v.owner = this;
     v.pitch = pitch;
@@ -63,6 +66,11 @@ export class Instrument {
       else this.fastRelease(v, t);
       v.released = true;
     }
+  }
+
+  /** Pitch shift in semitones (octave × 12 + cents / 100) for notes that start from now on. */
+  setDetune(semitones) {
+    this.detune = Number.isFinite(semitones) ? semitones : 0;
   }
 
   setParam(name, value) {

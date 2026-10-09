@@ -128,15 +128,27 @@ for (const type of SYNTH_TYPES) {
     }
     return out;
   });
-  // Renders are normally bit-identical. Once (2026-10-08, Chromium) two subtractive renders
-  // differed by 2.9e-8 (−151 dBFS) and repeats were identical again, so the bound is
-  // −120 dBFS: far below audibility, far above that browser-level float noise.
+  // Renders are normally bit-identical; Chromium can differ by float noise near −150 dBFS
+  // between two renders (2.9e-8 observed for subtractive), so the bound is −120 dBFS:
+  // far below audibility and far above that noise.
   add(`${type}-determinism`, `${type}: two identical offline renders match (≤ 1e-6)`, async () => {
     const a = (await render([widget(type)], note())).x;
     const b = (await render([widget(type)], note())).x;
     return [check('max difference', maxDiff(a, b), maxDiff(a, b) <= 1e-6)];
   });
 }
+
+add('tuning', 'Widget tuning: +1 octave plays 880 Hz, +100 cents plays 466.16 Hz, for A4', async () => {
+  const out = [];
+  for (const [fields, hz] of [[{ octave: 1 }, 880], [{ cents: 100 }, 466.16], [{ octave: -1, cents: -50 }, 213.74]]) {
+    for (const type of ['subtractive', 'pluck', 'granular']) {
+      const { x, sr } = await render([widget(type, GENTLE[type], fields)], note(69, 100, 0, null), { seconds: 1 });
+      const f = f0(span(x, sr, 0.3, 0.6), sr);
+      out.push(check(`${type} ${JSON.stringify(fields)}: f0 (Hz), expect ${hz} ±0.5 %`, f, within(f, hz, 0.005)));
+    }
+  }
+  return out;
+});
 
 add('volume', 'Widget volume: −12 dB is half the level of −6 dB', async () => {
   const at = async (db) => rms(span((await render([widget('subtractive', GENTLE.subtractive, { volumeDb: db })], note(60, 100, 0, null), { seconds: 1 })).x, SR, 0.3, 0.9));

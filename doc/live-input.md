@@ -65,27 +65,29 @@ function liveAllOff() {
 
 ### Requesting access
 ```ts
-async function connectMidi() {
-  await ensureRunning();
-  try {
-    const access = await navigator.requestMIDIAccess({ sysex: false });
-    access.inputs.forEach(attach);
-    access.onstatechange = (e) => {
-      const port = (e as MIDIConnectionEvent).port;
-      if (port?.type !== 'input') return;
-      if (port.state === 'connected') attach(port as MIDIInput);
-      else { liveAllOff(); announce(`${port.name ?? 'Device'} disconnected`); }
-      renderDeviceStatus(access);
-    };
+// Inside the Connect MIDI Device click handler, before any await:
+const request = navigator.requestMIDIAccess({ sysex: false });   // requestMidiAccess()
+await ready;                                                     // audio start (ensureRunning, worklets)
+try {
+  const access = await request;                                  // connectMidi(request, …)
+  access.inputs.forEach(attach);
+  access.onstatechange = (e) => {
+    const port = (e as MIDIConnectionEvent).port;
+    if (port?.type !== 'input') return;
+    if (port.state === 'connected') attach(port as MIDIInput);
+    else { liveAllOff(); announce(`${port.name ?? 'Device'} disconnected`); }
     renderDeviceStatus(access);
-  } catch (err) {
-    // SecurityError / NotAllowedError: user or policy denied access
-    showError('MIDI access was blocked');
-  }
+  };
+  renderDeviceStatus(access);
+} catch (err) {
+  // SecurityError / NotAllowedError: the user, a policy or the browser denied access
+  showError(`MIDI access was blocked (${err.name})`);
 }
 function attach(input: MIDIInput) { input.onmidimessage = onMidiMessage; }   // setting onmidimessage opens the port
 ```
-- Called only from the Connect MIDI Device button, never on page load.
+- Called only from the Connect MIDI Device button, never on page load. One request at a time: clicks while a request is pending or after access is granted do nothing, so inputs are never attached twice. A denied request can be retried.
+- **The request starts synchronously inside the click.** Firefox shows its permission prompt only during a user gesture; an `await` before `requestMIDIAccess()` (for example, waiting for audio to start) ends the gesture, and Firefox denies the request without a prompt. Chrome does not require a gesture. `requestMidiAccess()` (`src/live/web-midi.js`) makes the call and returns the pending promise; `Session.connectMidi` calls it first and awaits audio afterwards.
+- Firefox denies access in the same way when no MIDI device is connected, and it does not detect devices connected after it starts; the device must be connected before Firefox launches. A denial is remembered per site and can be cleared in the site permissions. The error text includes the error name (`NotAllowedError`, `SecurityError`) because the page cannot tell these causes apart.
 - All connected inputs and all 16 channels feed the live layer.
 - `attach` is idempotent: assigning `onmidimessage` again replaces the handler.
 

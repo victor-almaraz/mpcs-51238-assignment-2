@@ -12,10 +12,19 @@ export const MIN_RELEASE = 0.01;
 export const FAST_TAU = 0.0033;     // allNotesOff: ~10 ms fast release
 export const STEAL_TAU = 0.0015;    // stolen voice: 5 ms fade
 
-/** cancelAndHoldAtTime when available (not in Firefox), else cancel + set from the model. */
-export function holdAt(param, t, valueAtT) {
+/**
+ * cancelAndHoldAtTime when available (not in Firefox), else cancel + set from the model.
+ * The fallback's cancel also removes a linear ramp that ends after `t` (an attack still in
+ * progress at `t`); with `inRamp` it re-creates that ramp up to `t` instead of holding the
+ * earlier value and jumping at `t`.
+ */
+export function holdAt(param, t, valueAtT, inRamp = false) {
   if (typeof param.cancelAndHoldAtTime === 'function') param.cancelAndHoldAtTime(t);
-  else { param.cancelScheduledValues(t); param.setValueAtTime(valueAtT, t); }
+  else {
+    param.cancelScheduledValues(t);
+    if (inRamp) param.linearRampToValueAtTime(valueAtT, t);
+    else param.setValueAtTime(valueAtT, t);
+  }
 }
 
 function heldValue(v, t) {
@@ -43,7 +52,7 @@ export function scheduleAttack(param, v) {
 /** Starts an exponential release on `param` at `t` with time constant `tau`; updates the model. */
 export function scheduleRelease(param, v, t, tau) {
   const from = envValueAt(v, t);
-  holdAt(param, t, from);
+  holdAt(param, t, from, t > v.start && t < v.start + v.attack);
   param.setTargetAtTime(0, t, tau);
   v.offTime = t;
   v.relFrom = from;

@@ -42,6 +42,8 @@ export function formatParam(def, v) {
     case 'offset': return `${v > 0 ? '+' : ''}${signed(v, 2)}`;
     case 'oct': return `${v.toFixed(1)} oct`;
     case 'cents': return `${Math.round(v)} cents`;
+    case 'oct-shift': return `${v > 0 ? '+' : ''}${signed(v, 0)} oct`;
+    case 'cent-shift': return `${v > 0 ? '+' : ''}${signed(Math.round(v), 0)} cents`;
     case 'index': return v.toFixed(1);
     case 'per-s': return `${v < 10 ? v.toFixed(1) : Math.round(v)} /s`;
     case 'fraction': return formatPercent(v);
@@ -72,6 +74,8 @@ const UNIT_SCALES = {
   offset: {},
   oct: { oct: 1 },
   cents: { cents: 1, ct: 1 },
+  'oct-shift': { oct: 1 },
+  'cent-shift': { cents: 1, ct: 1 },
   index: {},
   'per-s': { '/s': 1 },
   fraction: { '%': 0.01 },

@@ -111,10 +111,11 @@ interface Instrument {
 - `exponentialRampToValueAtTime` with a target of 0 throws `RangeError`. Ramping from 0 (or across a sign change) does not throw: the value holds until the end time, then jumps. Exponential ramps therefore start and end at a floor of `0.0001`, or `setTargetAtTime` is used instead.
 - **`cancelAndHoldAtTime`:**
   - Supported in Chromium (since M57) and Safari.
-  - **Not implemented in Firefox:** bug 1308431 is still NEW, and MDN lists the method as not Baseline.
+  - **Not implemented in Firefox** (Mozilla bug 1308431); MDN lists the method as not Baseline.
   - It is feature-detected before use.
   - `cancelScheduledValues(t)` + `setValueAtTime(param.value, t)` is incorrect for a future `t`: `param.value` is the current value, not the value at `t`.
   - The fallback computes the envelope value at `t` from the voice's envelope model (attack start, peak, attack time).
+  - `cancelScheduledValues(t)` also removes a linear ramp that ends after `t`. When `t` falls inside the attack, the fallback re-creates the ramp with `linearRampToValueAtTime(valueAtT, t)` instead of `setValueAtTime`, so the level follows the attack up to `t` rather than holding the earlier value and jumping.
 ```ts
 function holdAt(p: AudioParam, t: number, valueAtT: number) {
   if (typeof (p as any).cancelAndHoldAtTime === 'function') (p as any).cancelAndHoldAtTime(t);

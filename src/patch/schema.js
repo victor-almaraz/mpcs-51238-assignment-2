@@ -31,6 +31,10 @@ function serializeWidget(w) {
     part,
   };
   if (part !== 'all' && typeof w.partLabel === 'string' && w.partLabel) out.partLabel = w.partLabel;
+  // Tuning and the lock are written only when set, so default widgets keep the minimal shape.
+  if (w.octave) out.octave = w.octave;
+  if (w.cents) out.cents = w.cents;
+  if (w.locked === true) out.locked = true;
   const params = {};
   const src = w.params || {};
   const defs = PARAM_DEFS[w.type] || [];

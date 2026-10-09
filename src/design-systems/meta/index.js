@@ -7,6 +7,7 @@ export { default as CardSection } from './components/CardSection';
 export { default as Chip } from './components/Chip';
 export { default as Dialog } from './components/Dialog';
 export { default as Disclosure } from './components/Disclosure';
+export { default as DisclosureButton } from './components/DisclosureButton';
 export { default as EmptyState } from './components/EmptyState';
 export { default as FileButton } from './components/FileButton';
 export { default as Heading } from './components/Heading';

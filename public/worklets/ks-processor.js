@@ -51,6 +51,9 @@ class KSProcessor extends AudioWorkletProcessor {
     }
     this.queue = [];                                     // filled in onmessage, drained in process()
     this.ageCounter = 0;
+    // Per-sample glide from the decay's loop gain to the release's (τ ≈ 5 ms), so a note-off
+    // never steps the level (an instant ρ change scales the next sample at once).
+    this.releaseGlide = 1 - Math.exp(-1 / (0.005 * sampleRate));
     this.faulted = false;
     this.port.onmessage = (e) => {
       const m = e.data;
@@ -208,7 +211,8 @@ class KSProcessor extends AudioWorkletProcessor {
       const buf = v.buf, N = v.N, C = v.C;
       const i0 = v.startFrame > blockStart ? v.startFrame - blockStart : 0;
       for (let i = i0; i < n; i++) {
-        if (!v.releasing && blockStart + i >= v.releaseFrame) { v.releasing = true; v.rho = v.rhoRel; }
+        if (!v.releasing && blockStart + i >= v.releaseFrame) v.releasing = true;
+        if (v.releasing && v.rho > v.rhoRel) v.rho += (v.rhoRel - v.rho) * this.releaseGlide;
         const w = v.w;
         const r1 = w + 1 < N ? w + 1 : 0;              // x[n−M]
         const avg = v.rho * ((1 - S) * buf[r1] + S * buf[w]);  // buf[w] holds x[n−M−1]

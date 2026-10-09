@@ -65,14 +65,20 @@ export default function SynthApp() {
   const noticeAck = useRef(false);
   const pendingAction = useRef(null);
   const headings = useRef(new Map());
-  const focusNew = useRef(false);
+  const focusTarget = useRef(null);    // 'last' (a new widget) or a widget id (after Undo)
   const undo = useRef(null);           // { id, run }: offered while toast `id` is visible
+  const sampleTokens = useRef(new Map()); // widget id → latest sample load; older loads are dropped
+  const rackRef = useRef(rack);
+  rackRef.current = rack;
 
-  /** Shows a status toast and returns its id. */
+  /** Shows a status toast and returns its id. A new polite toast drops any pending Undo. */
   const say = useCallback((text, opts = {}) => {
     const msg = { id: ++messageId, text, action: opts.action ?? null, details: opts.details ?? null };
     if (opts.assertive) setAssertive(msg);
-    else setPolite(msg);
+    else {
+      setPolite(msg);
+      undo.current = null;             // its toast is replaced; sayWithUndo sets the new one
+    }
     return msg.id;
   }, []);
 
@@ -109,10 +115,11 @@ export default function SynthApp() {
 
   useEffect(() => {
     session?.setWidgets(rack.widgets);
-    if (focusNew.current && rack.widgets.length > 0) {
-      focusNew.current = false;
-      const last = rack.widgets[rack.widgets.length - 1];
-      const el = headings.current.get(last.id);
+    if (focusTarget.current && rack.widgets.length > 0) {
+      const target = focusTarget.current;
+      focusTarget.current = null;
+      const id = target === 'last' ? rack.widgets[rack.widgets.length - 1].id : target;
+      const el = headings.current.get(id);
       if (el) {
         el.focus({ preventScroll: true });
         const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -164,7 +171,7 @@ export default function SynthApp() {
   // ----- rack actions -----
 
   const addSynth = (type) => withAudio(() => {
-    focusNew.current = true;
+    focusTarget.current = 'last';
     dispatch({ type: 'add', synth: type });
   });
 
@@ -172,17 +179,27 @@ export default function SynthApp() {
     update: (id, fields) => dispatch({ type: 'update', id, fields }),
     param: (id, name, value) => dispatch({ type: 'param', id, name, value }),
     harmonic: (id, index, value) => dispatch({ type: 'harmonic', id, index, value }),
+    tune: (id, name, value) => dispatch({ type: 'tune', id, name, value }),
     arm: (id, armed) => {
       if (!armed) session?.disarm(id);
       dispatch({ type: 'update', id, fields: { armed } });
     },
     /** Decodes and conditions a granular sample (sample.js); it becomes the widget's source. */
     loadSample: (id, file) => {
+      const token = (sampleTokens.current.get(id) ?? 0) + 1;
+      sampleTokens.current.set(id, token);
       decodeSample(file)
         .then(({ buffer, name, seconds, truncated }) => {
+          if (sampleTokens.current.get(id) !== token) return;   // a later load for this widget wins
+          const w = rackRef.current.widgets.find((x) => x.id === id);
+          if (!w || w.type !== 'granular') return;               // removed or replaced meanwhile
+          if (w.locked) {
+            showAlert({ key: 'sample', text: `Couldn't load ${name}: unlock ${w.name} first` });
+            return;
+          }
           dispatch({ type: 'sample', id, sample: { name, buffer, seconds } });
           showAlert({ key: 'sample', text: null });
-          say(`Loaded sample ${name} (${seconds.toFixed(1)} s${truncated ? `, first ${MAX_SAMPLE_SECONDS} s kept` : ''})`);
+          say(`Loaded file ${name} (${seconds.toFixed(1)} s${truncated ? `, first ${MAX_SAMPLE_SECONDS} s kept` : ''})`);
         })
         .catch((err) => {
           const reason = err instanceof SampleError ? err.message : 'unknown error';
@@ -193,9 +210,11 @@ export default function SynthApp() {
       const index = rack.widgets.findIndex((w) => w.id === id);
       if (index < 0) return;
       const widget = rack.widgets[index];
+      if (widget.locked) return;         // locked widgets cannot be removed (WidgetCard)
       dispatch({ type: 'remove', id });
       const restored = { ...widget, armed: false };
       sayWithUndo(`Removed ${widget.name}`, () => {
+        focusTarget.current = restored.id;   // Undo's button unmounts; focus the restored widget
         dispatch({ type: 'restore', widget: restored, index });
         say(`Restored ${widget.name}`);
       });
@@ -256,6 +275,7 @@ export default function SynthApp() {
       return;
     }
     sayWithUndo(text, () => {
+      focusTarget.current = previous[0].id;
       session.replaceRack(() => dispatch({ type: 'restoreAll', widgets: previous }));
       say('Previous rack restored');
     }, { details });

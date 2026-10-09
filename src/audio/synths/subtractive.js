@@ -59,7 +59,7 @@ export class Subtractive extends Instrument {
     const cents = v.envCents > 0 ? (v.envCents * envValueAt(v, Math.max(t, v.start))) / v.peak : 0;
     super.releaseVoice(v, t);
     if (v.envCents > 0) {
-      holdAt(v.filter.detune, t, cents);
+      holdAt(v.filter.detune, t, cents, t > v.start && t < v.start + v.attack);
       v.filter.detune.setTargetAtTime(0, t, v.release / 3);
     }
   }

@@ -53,7 +53,7 @@ export default function ValueField({ label, display, onCommit, disabled = false,
         }
       }}
       className={cx(
-        'min-w-0 rounded-ds border border-transparent border-b-border-strong bg-transparent text-sm tabular-nums text-fg',
+        'min-h-6 min-w-0 rounded-ds border border-transparent border-b-border-strong bg-transparent text-sm tabular-nums text-fg',
         'hover:border-border-strong focus:border-fg disabled:cursor-not-allowed disabled:opacity-40',
         focusRing,
         className,

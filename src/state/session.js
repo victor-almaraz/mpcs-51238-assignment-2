@@ -19,11 +19,12 @@ import { renderSongToWav, RENDER_MAX_SONG_SECONDS, DEFAULT_RENDER_RATE } from '.
 import { Transport, createOfflineScheduler } from '../playback/scheduler.js';
 import { LiveInput } from '../live/input.js';
 import { KeyboardInput } from '../live/keyboard.js';
-import { connectMidi } from '../live/web-midi.js';
+import { connectMidi, requestMidiAccess } from '../live/web-midi.js';
 
 const SEED = 1;
 const PATCH_SWAP_DELAY_MS = 30;   // patch load: outputs to 0, swap at t + 30 ms (audio-safety.md)
 const PATCH_RAMP_IN_S = 0.1;      // then ramp back over 100 ms
+const RESET_HOLD_MS = 1000;       // Reset is ignored this long after a Panic (audio-safety.md)
 const CEILING = Math.pow(10, SAFETY.ceilingDb / 20);
 
 const toDb = (x) => (x > 0 ? 20 * Math.log10(x) : -Infinity);
@@ -38,6 +39,8 @@ export class Session {
     this.songName = null;
     this.masterDb = VOLUME.masterDefault;
     this.masterMuted = false;
+    this.mutedAt = -Infinity;
+    this.midiState = 'idle';          // idle | pending | connected (connectMidi)
     this.ctx = null;
     this.bus = null;
     this.engine = null;
@@ -359,19 +362,23 @@ export class Session {
     this.transport.stop();
     this.releaseAll();
     this.masterMuted = true;
+    this.mutedAt = performance.now();
     if (this.bus) this.bus.master.linearTo(0, this.ctx.currentTime, 0.01);
     this.onUi({ playing: false, masterMuted: true });
-    this.message('Panic: sound stopped. Click Panic again or move the master volume to unmute.', { assertive: true });
+    this.message('Panic: sound stopped. Click Reset or move the master volume to restore it.', { assertive: true });
   }
 
   /**
-   * Ends a Panic: the master returns to its level with the slow rise (RISE_TAU), the same as
-   * raising the slider. Nothing restarts. The UI calls this only for a pointer click on the
-   * Panic toggle, never from a key (audio-safety.md "Safety UI").
+   * Ends a Panic (Reset): the master returns to its level with the slow rise (RISE_TAU), the same as
+   * raising the slider. Nothing restarts. The UI calls this only for a single pointer click on
+   * Reset, never from a key (audio-safety.md "Safety UI"). Reset is ignored for RESET_HOLD_MS
+   * after a Panic, so repeated fast clicks on Panic (a double-click, a double-tap) never unmute.
    */
   unmute() {
     if (!this.masterMuted) return;
+    if (performance.now() - this.mutedAt < RESET_HOLD_MS) return;
     this.masterMuted = false;
+    this.mutedAt = -Infinity;
     this.onUi({ masterMuted: false });
     if (this.bus && this.audioState === 'running') this.bus.master.setTarget(this.masterTarget(), this.ctx.currentTime, RISE_TAU);
     this.message('Sound restored');
@@ -437,15 +444,28 @@ export class Session {
     this.keyboard.shiftOctave(dir);
   }
 
+  /**
+   * Called inside the Connect MIDI Device click. The access request starts before any await,
+   * so it keeps the user gesture that Firefox requires for its permission prompt. One request
+   * at a time: clicks while one is pending or after access is granted do nothing, so inputs
+   * are never attached twice (which would double every live note).
+   */
   async connectMidi() {
+    if (this.midiState === 'pending' || this.midiState === 'connected') return;
+    this.midiState = 'pending';
+    const request = requestMidiAccess();
     const ok = await this.ready;
-    if (!ok) return;
-    const granted = await connectMidi({
+    if (!ok) {
+      this.midiState = 'idle';
+      return;
+    }
+    const granted = await connectMidi(request, {
       live: this.live,
       onStatus: (text, title) => this.onUi({ midiStatus: { text, title } }),
       onDisconnect: (name) => this.message(`${name} disconnected`),
       onError: (msg) => this.alert('midi-access', msg),
     });
+    this.midiState = granted ? 'connected' : 'idle';   // a denial can be retried
     if (granted) this.onAlert({ key: 'midi-access', text: null });
   }
 

@@ -1,5 +1,6 @@
 // Web MIDI input (live-input.md). All inputs and all 16 channels feed the live layer.
-// The caller runs ensureRunning() inside the Connect MIDI Device gesture before calling connectMidi().
+// Inside the Connect MIDI Device gesture the caller runs ensureRunning() and requestMidiAccess()
+// synchronously, then awaits connectMidi(request).
 
 export function isMidiSupported() {
   return typeof navigator !== 'undefined' && 'requestMIDIAccess' in navigator;
@@ -35,13 +36,26 @@ export function createMidiHandler(live) {
 }
 
 /**
- * Requests MIDI access and attaches every input. Resolves true on success, false on failure.
- * onStatus(text, title), onDisconnect(name), onError(message)
+ * Starts the MIDI access request. Call it synchronously inside the user's click: Firefox
+ * shows its permission prompt only during a user gesture, so any await before this call
+ * loses the gesture and the request is denied. Returns the pending promise, or null when
+ * Web MIDI is unsupported.
  */
-export async function connectMidi({ live, onStatus, onDisconnect, onError } = {}) {
+export function requestMidiAccess() {
+  if (!isMidiSupported()) return null;
+  const request = navigator.requestMIDIAccess({ sysex: false });
+  request.catch(() => {});             // handled by connectMidi; avoids an unhandled rejection meanwhile
+  return request;
+}
+
+/**
+ * Waits for a request from requestMidiAccess() and attaches every input. Resolves true on
+ * success, false on failure. onStatus(text, title), onDisconnect(name), onError(message)
+ */
+export async function connectMidi(request, { live, onStatus, onDisconnect, onError } = {}) {
   const status = typeof onStatus === 'function' ? onStatus : () => {};
   const error = typeof onError === 'function' ? onError : () => {};
-  if (!isMidiSupported()) {
+  if (!request) {
     error('Web MIDI is not supported in this browser');
     return false;
   }
@@ -49,7 +63,7 @@ export async function connectMidi({ live, onStatus, onDisconnect, onError } = {}
   const attach = (input) => { input.onmidimessage = onMidiMessage; };   // opens the port; idempotent
   const render = (access) => { const [text, title] = deviceStatus(access); status(text, title); };
   try {
-    const access = await navigator.requestMIDIAccess({ sysex: false });
+    const access = await request;
     access.inputs.forEach(attach);
     access.onstatechange = (e) => {
       const port = e && e.port;
@@ -63,9 +77,10 @@ export async function connectMidi({ live, onStatus, onDisconnect, onError } = {}
     };
     render(access);
     return true;
-  } catch {
-    // SecurityError / NotAllowedError: user or policy denied access
-    error('MIDI access was blocked');
+  } catch (err) {
+    // SecurityError / NotAllowedError: the user, a policy or the browser denied access. Firefox
+    // reports a missing site permission and an absent device the same way (live-input.md).
+    error(`MIDI access was blocked${err && err.name ? ` (${err.name})` : ''}`);
     return false;
   }
 }

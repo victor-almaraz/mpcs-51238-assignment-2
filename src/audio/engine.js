@@ -10,7 +10,7 @@ import { Pluck } from './synths/pluck.js';
 import { Granular } from './synths/granular.js';
 import { VoicePool, MAX_VOICES_GLOBAL } from './voices.js';
 import { TrackedParam, GAIN_TAU, RISE_TAU } from './smoothing.js';
-import { dbToGain } from './synths/param-defs.js';
+import { dbToGain, tuningSemitones } from './synths/param-defs.js';
 import { hashSeed } from './random.js';
 import { buildMasterBus } from './master-bus.js';
 
@@ -50,6 +50,7 @@ function snapshot(w) {
     part: w.part ?? 'all',
     params: copyParams(w.params),
     sample: w.sample ?? null,          // granular: { name, buffer, seconds } (not copied)
+    detune: tuningSemitones(w),        // octave and cents in semitones
   };
 }
 
@@ -116,6 +117,7 @@ export class Engine {
     if (!inst) return;
     for (const [k, v] of Object.entries(e.widget.params)) inst.setParam(k, v);
     if (e.widget.sample && inst.setSample) inst.setSample(e.widget.sample.buffer);
+    inst.setDetune(e.widget.detune);
     inst.output.connect(this.bus.mixBus);
     e.gain = new TrackedParam(inst.output.gain, 0);
     if (rampIn > 0) e.gain.linearTo(target, now, rampIn);
@@ -148,6 +150,7 @@ export class Engine {
         if (!sameValue(prev.params[k], v)) e.inst.setParam(k, v);
       }
       if (prev.sample !== e.widget.sample && e.inst.setSample) e.inst.setSample(e.widget.sample?.buffer ?? null);
+      if (prev.detune !== e.widget.detune) e.inst.setDetune(e.widget.detune);
       if (prev.part !== e.widget.part) e.inst.allNotesOff(now);
       if (Math.abs(target - e.gain.target) > 1e-9) e.gain.setTarget(target, now, target > e.gain.target ? RISE_TAU : GAIN_TAU);
     }

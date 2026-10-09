@@ -1,27 +1,29 @@
 'use client';
 
 import { useId } from 'react';
-import { Badge, Meter, ToggleButton } from '@/design-systems/meta';
+import { Badge, Button, Meter } from '@/design-systems/meta';
 import { VOLUME } from '@/audio/synths/param-defs';
 import VolumeSlider from './widgets/VolumeSlider';
 
 /**
- * Master volume, meter, Limit badge and Panic (audio-safety.md "Safety UI"). The meter and
+ * Master volume, meter, Limit badge and Panic / Reset (audio-safety.md "Safety UI"). The meter and
  * the Limit badge are driven per animation frame by Transport through refs.
  *
- * Panic is a toggle, pressed while muted. Pressing it (click, Enter, Space, or Escape
- * anywhere) mutes. Unmuting takes a pointer click: a click synthesised from the keyboard
- * (`detail === 0`) is ignored, so no key can bring sound back. Moving the master volume
- * also unmutes, which keeps a keyboard path.
+ * One button reads "Panic" while sound plays and "Reset" while muted. Panic (click, Enter,
+ * Space, or Escape anywhere) mutes. Reset takes a pointer click: a click synthesised from the
+ * keyboard (`detail === 0`) and the later clicks of a double-click (`detail > 1`) are ignored,
+ * and the session ignores Reset for 1 s after a Panic, so neither a key nor fast repeated
+ * clicks bring sound back. Moving the master volume also unmutes, which keeps a keyboard
+ * path. The label carries the state, so the button has no aria-pressed.
  *
- * On mobile the wrapper is `display: contents` so Panic can join the first row of the
+ * On mobile the wrapper is `display: contents` so the button can join the first row of the
  * bottom bar (order-2) while the volume and meter form the second row (order-3).
  */
 export default function MasterSection({ ui, onMaster, onPanic, onUnmute, meterRef, limitRef }) {
   const hintId = useId();
-  const onPanicClick = (e) => {
+  const onClick = (e) => {
     if (!ui.masterMuted) onPanic();
-    else if (e.detail > 0) onUnmute();
+    else if (e.detail === 1) onUnmute();   // a single pointer click; never a key (0) or the 2nd click of a double-click
   };
   return (
     <div className="contents lg:flex lg:flex-wrap lg:items-center lg:gap-3">
@@ -44,20 +46,19 @@ export default function MasterSection({ ui, onMaster, onPanic, onUnmute, meterRe
         {ui.masterMuted && <span className="text-sm font-semibold">Muted</span>}
         {ui.reducedSafety && <span className="text-sm">Reduced safety mode</span>}
       </div>
-      <ToggleButton
+      <Button
         size="lg"
-        pressed={ui.masterMuted}
-        onClick={onPanicClick}
-        aria-keyshortcuts="Escape"
+        onClick={onClick}
+        aria-keyshortcuts={ui.masterMuted ? undefined : 'Escape'}
         aria-describedby={ui.masterMuted ? hintId : undefined}
-        title={ui.masterMuted ? 'Click to unmute, or move the master volume' : undefined}
+        title={ui.masterMuted ? 'Click to restore sound, or move the master volume' : undefined}
         className="order-2 lg:order-none"
       >
-        Panic
-      </ToggleButton>
+        {ui.masterMuted ? 'Reset' : 'Panic'}
+      </Button>
       {ui.masterMuted && (
         <span id={hintId} className="sr-only">
-          Muted. Click to unmute, or move the master volume.
+          Muted. Click to restore sound, or move the master volume.
         </span>
       )}
     </div>

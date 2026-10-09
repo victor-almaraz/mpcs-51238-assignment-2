@@ -35,12 +35,12 @@ test('serialize → parsePatch round trip', () => {
 
   const { widgets: out, warnings } = parsePatch(JSON.stringify(obj, null, 2), song);
   assert.deepEqual(out[0], {
-    type: 'subtractive', muted: false, solo: true, volumeDb: -12.5, part: 'all', requestedPart: null,
-    partLabel: null, params: defaultParams('subtractive'),
+    type: 'subtractive', muted: false, solo: true, locked: false, volumeDb: -12.5, part: 'all', requestedPart: null,
+    partLabel: null, octave: 0, cents: 0, params: defaultParams('subtractive'),
   });
   assert.deepEqual(out[1], {
-    type: 'additive', muted: true, solo: false, volumeDb: -Infinity, part: 't2c1', requestedPart: null,
-    partLabel: 'Bass', params: defaultParams('additive'),
+    type: 'additive', muted: true, solo: false, locked: false, volumeDb: -Infinity, part: 't2c1', requestedPart: null,
+    partLabel: 'Bass', octave: 0, cents: 0, params: defaultParams('additive'),
   });
   assert.equal(out[2].part, 'all');
   assert.equal(out[2].requestedPart, 't5c0');
@@ -97,7 +97,7 @@ test('__proto__ keys are ignored', () => {
   assert.equal(({}).polluted, undefined);
   assert.equal(Object.getPrototypeOf(w), Object.prototype);
   assert.equal(Object.getPrototypeOf(w.params), Object.prototype);
-  assert.deepEqual(Object.keys(w), ['type', 'muted', 'solo', 'volumeDb', 'part', 'requestedPart', 'partLabel', 'params']);
+  assert.deepEqual(Object.keys(w), ['type', 'muted', 'solo', 'locked', 'volumeDb', 'part', 'requestedPart', 'partLabel', 'octave', 'cents', 'params']);
   assert.deepEqual(Object.keys(w.params), PARAM_DEFS.fm.map((d) => d.name));
   assert.equal(w.params.ratio, 3);
   assert.equal(w.polluted, undefined);
@@ -190,5 +190,22 @@ test('a granular sample is saved by name only and asks to be loaded again', () =
   assert.equal(JSON.stringify(obj).includes('buffer'), false);
   const { widgets, warnings } = parsePatch(JSON.stringify(obj), null);
   assert.equal(widgets[0].params.source, 'sample');
-  assert.ok(warnings.some((m) => m.includes("sample 'loop.wav' is not stored in patches")), warnings.join('; '));
+  assert.ok(warnings.some((m) => m.includes("file 'loop.wav' is not stored in patches")), warnings.join('; '));
+});
+
+test('tuning and the lock round-trip; out-of-range tuning is clamped with a warning', () => {
+  const w = { type: 'fm', muted: false, solo: false, volumeDb: -6, part: 'all', octave: -2, cents: 15, locked: true, params: {} };
+  const obj = serializePatch([w, { type: 'fm', muted: false, solo: false, volumeDb: -6, part: 'all', params: {} }]);
+  assert.equal(obj.widgets[0].octave, -2);
+  assert.equal(obj.widgets[0].cents, 15);
+  assert.equal(obj.widgets[0].locked, true);
+  assert.deepEqual(Object.keys(obj.widgets[1]), ['type', 'muted', 'solo', 'volumeDb', 'part', 'params']);
+  const back = parsePatch(JSON.stringify(obj), null).widgets[0];
+  assert.equal(back.octave, -2);
+  assert.equal(back.cents, 15);
+  assert.equal(back.locked, true);
+  const bad = parsePatch(patchText([{ type: 'fm', octave: 7, cents: 'x' }]), null);
+  assert.equal(bad.widgets[0].octave, 3);
+  assert.equal(bad.widgets[0].cents, 0);
+  assert.ok(bad.warnings.some((m) => m.includes('Octave adjusted')) && bad.warnings.some((m) => m.includes('Cents adjusted')));
 });

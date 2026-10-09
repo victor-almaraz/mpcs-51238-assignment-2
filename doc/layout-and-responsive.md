@@ -6,7 +6,7 @@ Page structure, the rack grid, widget anatomy and responsive behaviour at 390 px
 ## Page regions (in DOM and visual order)
 1. **Header (hero):** page title "Synthesizer Rack" (the only H1) and a link back to the hub.
 2. **Transport band:** all meta controls in one section with a bottom border, which separates them from the rack.
-   - **Master** (always shown): Record toggle and recording indicator (`recording.md`), master volume, meter, Limit badge, Panic (`audio-safety.md`).
+   - **Master** (always shown): Record toggle and recording indicator (`recording.md`), master volume, meter, Limit badge, Panic / Reset (`audio-safety.md`).
    - **Song** (shown only once a MIDI file is loaded or being read): file name, Play/Stop toggle, position `0:42 / 3:10`, Render to WAV and render progress.
    - **File menu** (always shown, at the end of the first row; see "File menu").
    - **Live input** (last row): Play with Keyboard, octave, Connect MIDI Device, device status (`live-input.md`).
@@ -36,17 +36,24 @@ Page structure, the rack grid, widget anatomy and responsive behaviour at 390 px
 
 ## Widget anatomy (fixed vertical order)
 ```
-┌ Header ───────────────────────────────────────┐
-│ [Type name H2]     [Live] [M] [S]   [Remove ✕] │
-├ Params ───────────────────────────────────────┤
-│ Waveform  (○ Sine ● Saw ○ Sq ○ Tri)           │
-│ Cutoff    ───────●──────────   2.0 kHz        │
-│ Resonance ──●───────────────   1.0 dB         │
-│ Attack / Release …                             │
-├ Footer ───────────────────────────────────────┤
-│ Part [All parts ▾]       Volume ────●── 80 %  │
-└────────────────────────────────────────────────┘
+┌ Header ───────────────────────────────────────────┐
+│ [▾ Type name H2]   [Live] [M] [S] [Lock] [Remove ✕] │
+├ Params ───────────────────────────────────────────┤
+│ Waveform  (○ Sine ● Saw ○ Sq ○ Tri)               │
+│ Cutoff    ───────●──────────   2.0 kHz            │
+│ Resonance ──●───────────────   1.0 dB             │
+│ Attack / Decay / Sustain / Release …              │
+├ Footer ───────────────────────────────────────────┤
+│ Part      [All parts ▾]                           │
+│ Volume    ────────●─────────   −6.0 dB            │
+│ Octave    ─────●────────────   0 oct              │
+│ Cents     ─────●────────────   0 cents            │
+└────────────────────────────────────────────────────┘
 ```
+- Header: the title and the chips wrap onto two rows when the card is too narrow for one (phones); the title keeps at least 8 rem.
+- Collapse: the title is a `DisclosureButton` (▾ expanded, ▸ collapsed; `aria-expanded`, `aria-controls` the params and footer). A collapsed widget shows its header only. Collapse is session state and is not stored in patches.
+- Lock: the Lock chip (pressed = locked) disables every control that changes the sound or routing: params (including typed values, harmonic bars and Load File…), Part, Volume, Octave, Cents and Remove. Live, M and S stay enabled, so a locked widget can always be muted. The reducer ignores param, harmonic, sample and tuning actions on a locked widget. The lock is stored in patches.
+- Tuning: Octave (−3 to +3, step 1) and Cents (−100 to +100, step 1) shift every note the widget plays, file and live. The shift applies to notes that start after a change, and the shifted pitch is clamped to MIDI 0–127. Both are stored in patches (`patch-format.md`).
 - Alignment:
   - Labels sit on the left at a fixed width (`w-24`).
   - Sliders fill the middle (`flex-1`).
@@ -54,9 +61,9 @@ Page structure, the rack grid, widget anatomy and responsive behaviour at 390 px
 - Grouping:
   - Header: identity and actions.
   - Params: sound-shaping controls. Use `<fieldset>`/`<legend>` for radio groups.
-  - Footer: routing and level, separate from the params.
+  - Footer: routing, level and tuning, separate from the params.
 - Params order: sound source first, then shaping, then the envelope (attack, decay, sustain, release), then modulation. At most 8 controls per card (`synthesis-conventions.md`).
-- Granular: only while the File source is selected, a row under Source, aligned with the controls, holds "Load Sample…" (a `FileButton`, accepting `audio/*`) and the loaded file's name (truncated, full name in `title`), or "No sample loaded: silent". A loaded sample is kept while another source is selected. Load errors use the error banner ("Couldn't load {file}: {reason}"); success shows a toast ("Loaded sample {name} (1.8 s)").
+- Granular: only while the File source is selected, a row under Source, aligned with the controls, holds "Load File…" (a `FileButton`, accepting `audio/*`) and the loaded file's name (truncated, full name in `title`), or "No file loaded: silent". A loaded sample is kept while another source is selected. Load errors use the error banner ("Couldn't load {file}: {reason}"); success shows a toast ("Loaded file {name} (1.8 s)").
 - Card style:
   - `rounded-lg border border-neutral-300 bg-white p-3 md:p-4` (12 px padding on phones keeps the param rows from truncating at 360 px).
   - No shadow stacks, gradients, knobs, screws or textures.
@@ -108,13 +115,13 @@ Page structure, the rack grid, widget anatomy and responsive behaviour at 390 px
 - Choosing an item closes the menu and returns focus to the File button.
 
 ## Status toasts
-- Status messages appear as toasts (GNOME HIG "Toasts"), not as text in the page flow. Text in the flow ended up below the rack, out of view.
+- Status messages appear as toasts (GNOME HIG "Toasts"), not as text in the page flow, so they stay in view at any scroll position.
 - Placement: `fixed`, horizontally centred, up to `max-w-lg` wide.
   - Below `lg`, toasts sit 12 px above the bottom transport bar. Transport publishes the bar's height as `--bottom-bar-h`.
   - From `lg`, they sit 24 px from the bottom of the window.
 - Content: the message, an optional action ("Undo", "Download Again"), an optional Details disclosure, and a Dismiss button (✕).
 - Timing: a toast hides after 6 s. The timer pauses while the pointer or keyboard focus is on the toast. A new message replaces the current one.
-- Undo (widget removal, patch load over a non-empty rack) is available only while its toast is visible. Once the toast hides or is replaced, the undo is dropped.
+- Undo (widget removal, patch load over a non-empty rack) is available only while its toast is visible. Once the toast hides or is replaced, the undo is dropped. After Undo, focus moves to the restored widget's heading (the first widget's after a patch undo), because the Undo button unmounts with its toast.
 - Live regions: the assertive and polite regions stay mounted inside the toast container; each message gets a fresh node.
 - Ongoing states (audio paused, safety stage stopped, level reduced) stay as banners under the transport.
 
