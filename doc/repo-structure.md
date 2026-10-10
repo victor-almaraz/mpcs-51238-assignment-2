@@ -114,9 +114,24 @@ Folder layout, routes, and which modules may import which. `<style>` stands for 
 - Tokens:
   - `tokens.css` defines the style's values as CSS variables under `[data-ds="<style>"]` (e.g. `--ds-bg`, `--ds-surface`, `--ds-text`, `--ds-muted`, `--ds-border`, `--ds-accent`, `--ds-radius`).
   - `globals.css` imports all three `tokens.css` files and maps the variables to Tailwind theme names with `@theme inline` (e.g. `--color-accent: var(--ds-accent)`), giving utilities such as `bg-accent`, `text-muted`, `border-border`.
+  - Every style defines `--ds-level-low`, `--ds-level-mid` and `--ds-level-high`, the three colours of the level gradients (meter, harmonic bars, render progress); the theme maps them to `level-low`, `level-mid` and `level-high`.
   - A page selects its style by setting `data-ds="<style>"` on its root element. The showcase pages set their own style; `/synth/` sets the chosen style.
 - Components use the semantic utilities only. Raw palette classes (`neutral-*`, `indigo-*`) in `layout-and-responsive.md` and `controls-and-accessibility.md` stand for the corresponding tokens.
 - The synth UI imports components from the chosen style only: `import { Button, Card } from '@/design-systems/<chosen>'`.
+- Every library exports the same component names with the same props, plus `fontClassName`. The element that carries `data-ds` also takes `fontClassName`.
+- Fonts:
+  - Fonts are open-licence and self-hosted. Google Fonts are not used.
+  - `fonts.js` loads the files in the style's `fonts/` folder with `next/font/local`. Each family defines a CSS variable that `tokens.css` reads into `--ds-font-sans` and `--ds-font-display`.
+  - Each font's licence file sits beside its font files.
+- Showcase pages:
+  - `src/components/design-system/Showcase.jsx` renders every component in every state the app reaches (`controls-and-accessibility.md`, "Component inventory and states"). It takes the library as `ds` (`import * as ds`) and the style's `about.js` (principles, font credits).
+  - A client binding per style (`src/components/design-system/<Style>Showcase.jsx`) passes the library in, because components cannot cross the server–client boundary as props.
+  - The page chrome uses the meta style. Specimen panels set `data-ds="<style>"`.
+  - Synth widgets come from the rack itself: the widget components read their library from `useDesignSystem()` (`src/components/synth/design-system-context.js`, default meta), and the showcase wraps them in a `DesignSystemProvider` with the style's library and drives them with `rackReducer`.
+- Forced states:
+  - `globals.css` redefines the `hover`, `active`, `focus` and `focus-visible` variants to also match `data-force~="hover"`, `"active"` and `"focus"` on the element.
+  - Components pass `data-force` through to their interactive element. Option and item objects of SegmentedControl and MenuButton accept `force`.
+  - Without the attribute, the variants behave as Tailwind's built-ins.
 
 ## Import rules
 | Module | May import | Must not import |

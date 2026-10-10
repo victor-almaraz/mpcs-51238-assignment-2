@@ -1,12 +1,13 @@
 'use client';
 
-import { SliderGroup } from '@/design-systems/meta';
+import { useDesignSystem } from '../design-system-context';
 import { formatPercent, parseParam } from '../format';
 
 const FRACTION = { unit: 'fraction' };
 
 /** Eight harmonic level bars, each with a typed percent field underneath (0–100). */
 export default function HarmonicBars({ values, onChange, disabled }) {
+  const { SliderGroup } = useDesignSystem();
   const silent = values.every((v) => v === 0);
   const edit = (i, typed) => {
     const v = parseParam(FRACTION, typed, '0 %');

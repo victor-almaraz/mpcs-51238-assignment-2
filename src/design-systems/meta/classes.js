@@ -40,6 +40,9 @@ export const buttonVariants = {
   secondary:
     'border-border-strong bg-surface text-fg enabled:hover:bg-hover enabled:active:bg-active',
   ghost: 'border-transparent bg-transparent text-fg enabled:hover:bg-hover enabled:active:bg-active',
+  /* Panic: the one control that must be found at a glance. Solid fill, bold label, heavy border. */
+  danger:
+    'border-2 border-danger bg-danger font-bold! text-accent-fg enabled:hover:border-accent-hover enabled:hover:bg-accent-hover enabled:active:bg-danger',
 };
 
 /** Pressed / checked look. */

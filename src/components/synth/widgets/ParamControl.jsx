@@ -1,12 +1,13 @@
 'use client';
 
 import { useId } from 'react';
-import { SegmentedControl } from '@/design-systems/meta';
+import { useDesignSystem } from '../design-system-context';
 import ParamSlider from './ParamSlider';
 import HarmonicBars from './HarmonicBars';
 
 /** Renders the control for one PARAM_DEFS entry: radio group, slider or harmonic bars. */
 export default function ParamControl({ def, widget, onParam, onHarmonic, disabled }) {
+  const { SegmentedControl } = useDesignSystem();
   const name = useId();
   const value = widget.params[def.name];
   if (def.kind === 'enum') {

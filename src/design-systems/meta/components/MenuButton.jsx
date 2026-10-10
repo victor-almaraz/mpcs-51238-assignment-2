@@ -15,7 +15,8 @@ import Button from './Button';
  * Separators are skipped by the arrow keys.
  * align="flow": full-width list in normal flow on mobile, anchored dropdown at md+.
  * align="end": anchored dropdown at every size, right edge under the button.
- * `className` goes on the wrapper, other props and `ref` on the button.
+ * `className` goes on the wrapper, other props and `ref` on the button. `defaultOpen` renders
+ * the menu open initially, and an item's `force` sets its data-force (design-system pages).
  */
 const MENU_PLACEMENT = {
   flow: 'mt-2 w-full md:absolute md:top-full md:left-0 md:z-20 md:w-72',
@@ -29,6 +30,7 @@ export default function MenuButton({
   variant = 'primary',
   size = 'lg',
   align = 'flow',
+  defaultOpen = false,
   buttonClassName,
   menuClassName,
   className,
@@ -37,7 +39,7 @@ export default function MenuButton({
   ref,
   ...rest
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [focusIndex, setFocusIndex] = useState(-1);
   const wrapRef = useRef(null);
   const buttonRef = useRef(null);
@@ -198,6 +200,7 @@ export default function MenuButton({
                 aria-checked={radio ? (item.checked ? 'true' : 'false') : undefined}
                 tabIndex={-1}
                 aria-disabled={item.disabled ? 'true' : undefined}
+                data-force={item.force}
                 onClick={() => choose(item)}
                 className={cx(
                   'flex min-h-11 w-full flex-col items-start justify-center px-3 py-2 text-left',

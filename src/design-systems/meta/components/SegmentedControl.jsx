@@ -6,7 +6,8 @@ import { cx, peerFocusRing, selectedLook } from '../classes';
 /**
  * Radio group styled as segmented buttons. Native radios are visually hidden
  * but focusable; arrow keys move the selection natively.
- * The legend floats so it lays out inline (w-24) with the options.
+ * The legend floats so it lays out inline (w-24) with the options. An option's `force`
+ * sets data-force on its input and label (design-system pages).
  */
 export default function SegmentedControl({
   legend,
@@ -44,10 +45,12 @@ export default function SegmentedControl({
                 checked={checked}
                 onChange={() => onChange(opt.value)}
                 className="peer sr-only"
+                data-force={opt.force}
               />
               <label
                 htmlFor={id}
                 title={opt.title}
+                data-force={opt.force}
                 className={cx(
                   'relative flex min-h-8 min-w-0 flex-1 items-center justify-center rounded-ds border px-1.5 text-sm select-none motion-safe:transition-colors',
                   'peer-focus-visible:z-10',

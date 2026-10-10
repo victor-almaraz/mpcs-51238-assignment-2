@@ -124,7 +124,8 @@ How each control is built, its states and keyboard support, how it maps to desig
 | Add Synth | MenuButton (primary) |
 | File menu (Load MIDI File…, Save Patch, Load Patch…, WAV format) | MenuButton (secondary, end-aligned, radio items) |
 | Load File… (granular) | FileButton |
-| Play/Stop, Render to WAV, Cancel, Panic / Reset, Octave −/+, Connect MIDI Device, banner and toast actions, dialog buttons | Button |
+| Panic | Button (danger) |
+| Play/Stop, Render to WAV, Cancel, Reset, Octave −/+, Connect MIDI Device, banner and toast actions, dialog buttons | Button |
 | Position, octave | TextOutput |
 | Meter, Limit / Clip badges | Meter; Badge |
 | Render progress | ProgressBar |
@@ -141,7 +142,7 @@ Shared interaction states apply to every interactive component unless the row sa
 
 | Component | Used for | States the app reaches |
 |---|---|---|
-| **Button** | Play/Stop, Render to WAV, Cancel, Octave −/+, Connect MIDI Device, Panic / Reset, Resume Audio, Restart Audio, Restore Level, Start Audio / Cancel (dialog), Undo / Download Again (toasts) | Variant: secondary (default), primary (inside the Add Synth MenuButton), ghost (inside IconButton). Size: lg (44 px; transport), md (32 px; toasts, live input, banners, dialog). Disabled with a `title` reason: Play/Stop (no song yet), Render to WAV (no song, recording, muted after Panic, render in progress), Octave −/+ (at the range limits). Panic / Reset: label "Panic" while sound plays, "Reset" while muted, with a `title` and described-by hint (size lg). Content: text, or glyph + text (▶ Play / ■ Stop). |
+| **Button** | Play/Stop, Render to WAV, Cancel, Octave −/+, Connect MIDI Device, Panic / Reset, Resume Audio, Restart Audio, Restore Level, Start Audio / Cancel (dialog), Undo / Download Again (toasts) | Variant: secondary (default), primary (inside the Add Synth MenuButton), danger (Panic), ghost (inside IconButton). Size: lg (44 px; transport), md (32 px; toasts, live input, banners, dialog). Disabled with a `title` reason: Play/Stop (no song yet), Render to WAV (no song, recording, muted after Panic, render in progress), Octave −/+ (at the range limits). Panic / Reset: label "Panic" (danger variant) while sound plays, "Reset" (secondary) while muted, with a `title` and described-by hint (size lg). Content: text, or glyph + text (▶ Play / ■ Stop). |
 | **ToggleButton** | Record, Play with Keyboard | Unpressed and pressed (`aria-pressed`, black fill). Record: disabled with a reason (no recorder, audio not started, a file being saved or rendered). |
 | **Chip** | Live, M (mute), S (solo), Lock | Unpressed and pressed, independently per chip. Lock carries a `title` ("Lock to prevent changes" / "Locked: unlock to edit"). |
 | **IconButton** | Remove widget (✕), dismiss in Alert and Toast (✕) | Ghost: no border until hover or active. Remove: disabled while the widget is locked, with the `title` "Unlock to remove". |

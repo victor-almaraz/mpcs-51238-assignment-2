@@ -1,7 +1,7 @@
 'use client';
 
 import { useId } from 'react';
-import { Card, CardSection, Chip, DisclosureButton, Heading, IconButton, Select } from '@/design-systems/meta';
+import { useDesignSystem } from '../design-system-context';
 import { TUNING_DEFS, VOLUME } from '@/audio/synths/param-defs';
 import VolumeSlider from './VolumeSlider';
 import ParamSlider from './ParamSlider';
@@ -23,11 +23,13 @@ const PANELS = {
  * One rack widget: header (identity and actions), params, footer (routing, level, tuning)
  * in a fixed vertical order (layout-and-responsive.md "Widget anatomy").
  *
- * The title is a disclosure button: collapsing hides the params and footer. Lock disables
+ * The header is one row: the title (a disclosure button, truncating when space runs out) and
+ * the Live / M / S / Lock / Remove controls. Collapsing hides the params and footer. Lock disables
  * every control that changes the sound or routing (params, part, volume, tuning, Remove);
  * Live, M and S stay available, so a locked widget can always be muted.
  */
 export default function WidgetCard({ widget, song, pluckEngine, headingRef, actions }) {
+  const { Card, CardSection, Chip, DisclosureButton, Heading, IconButton, Select } = useDesignSystem();
   const partId = useId();
   const bodyId = useId();
   const { id, name, type, locked, collapsed } = widget;
@@ -38,13 +40,13 @@ export default function WidgetCard({ widget, song, pluckEngine, headingRef, acti
 
   return (
     <Card aria-labelledby={`${partId}-title`}>
-      <div className="flex flex-wrap items-center gap-2">
-        <Heading level={2} id={`${partId}-title`} ref={headingRef} tabIndex={-1} className="flex min-w-32 flex-1">
-          <DisclosureButton expanded={!collapsed} controls={bodyId} onClick={() => actions.update(id, { collapsed: !collapsed })}>
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        <Heading level={2} id={`${partId}-title`} ref={headingRef} tabIndex={-1} className="flex min-w-0 flex-1">
+          <DisclosureButton expanded={!collapsed} controls={bodyId} title={name} onClick={() => actions.update(id, { collapsed: !collapsed })}>
             {name}
           </DisclosureButton>
         </Heading>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5">
           <Chip pressed={widget.armed} aria-label={`Live input to ${name}`} onClick={() => actions.arm(id, !widget.armed)}>
             Live
           </Chip>

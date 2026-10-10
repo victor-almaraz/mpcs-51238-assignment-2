@@ -1,0 +1,174 @@
+/*
+ * Light/Grain/Color design system (mood board 3). A page opts in with
+ * data-ds="light-grain-color" on its root element, together with the class from
+ * fonts.js (fontClassName), which defines --font-lgc-display and --font-lgc-sans.
+ *
+ * Night lit by coloured light, seen through film grain. Where Contrast/Form is
+ * flat and hard-edged, this style is luminous: soft gradients, bloom around lit
+ * controls, rounded forms, and a static grain over surfaces (never animated, so
+ * nothing moves under reduced motion).
+ *
+ * Colour is set in OKLCH (L, C, H) and written as hex. Every hue is sampled from
+ * the board:
+ *   Neutrals: ember-tinted darks (H 14, C 0.022-0.037), a darkroom under a red safelight.
+ *   fg: sodium-lit white (H 65).
+ *   accent: sodium amber (Fallen Angels, Beyond the Black Rainbow), Add Synth only.
+ *   focus: cathode cyan (the Skinamarink television), the cool complement of the
+ *     warm ground, so the ring is never mistaken for a lit or selected control.
+ *   Levels follow the Cosmatos haze, dim to bright: violet → gel red → sodium amber,
+ *     interpolated in OKLCH. The hues stay warm the whole way (via magenta and
+ *     orange), and the top of a level is the brightest light on the page.
+ *   Status: danger is gel red (Mandy, Suspiria), warning sodium yellow, success
+ *     Chungking jade; each also has a word and a glyph.
+ *
+ * Contrast (WCAG 2.2), measured on the plain ground and on the ground under the
+ * haze at its strongest (#290e0f):
+ *   fg: 15.6:1 under the haze, 14.7:1 on surface-2, 10.1:1 on active
+ *   muted: 8.3:1 under the haze, 6.3:1 on hover, 5.4:1 on active (text >= 4.5:1)
+ *   border-strong: 5.8:1 on surface, 5.4:1 on surface-2, 4.4:1 on hover (controls >= 3:1)
+ *   focus: 10.1:1 under the haze, 9.5:1 on surface-2
+ *   levels on surface: violet 4.7:1, red 5.3:1, amber 9.9:1
+ *   accent-fg on accent 10.6:1; dark text on danger (Panic) 6.2:1
+ *   danger 5.6:1, warning 11.7:1, success 9.6:1 on their backgrounds
+ *   border is a divider only (1.7:1), never a control boundary.
+ * Grain is a background layer (alpha 0.06-0.09) under text; it does not change
+ * these ratios measurably.
+ *
+ * Inside @layer base so Tailwind utilities on the same element still win.
+ */
+@layer base {
+  [data-ds="light-grain-color"] {
+    color-scheme: dark;
+
+    /* Neutrals: H 14, C 0.022-0.037. */
+    --ds-bg: #140809;
+    --ds-surface: #1f1011;
+    --ds-surface-2: #2a1719;
+    --ds-hover: #3e2728;
+    --ds-active: #4b3133;
+
+    /* Sodium-lit white: L 0.95, C 0.025, H 70. */
+    --ds-fg: #faecdd;
+    --ds-muted: #c4aaa6;
+
+    --ds-border: #4f393b;
+    --ds-border-strong: #a68a8c;
+
+    /* Sodium amber: Add Synth only. */
+    --ds-accent: #faaf58;
+    --ds-accent-fg: #140809;
+    --ds-accent-hover: #fbcb8e;
+
+    /* Selected controls are lit: sodium-white fill, dark text, bloom. */
+    --ds-selected: var(--ds-fg);
+    --ds-selected-fg: #140809;
+
+    /* Cathode cyan. */
+    --ds-focus: #44d4e2;
+
+    /* Levels: violet (H 322) → gel red (H 25) → sodium amber (H 68). */
+    --ds-level-low: #af64bb;
+    --ds-level-mid: #f4514f;
+    --ds-level-high: #faaf58;
+
+    --ds-danger: #f75d59;
+    --ds-danger-bg: #2e100e;
+    --ds-warning: #f0d862;
+    --ds-warning-bg: #241e02;
+    --ds-success: #71d6a3;
+    --ds-success-bg: #082115;
+
+    /* Bloom: light spilling around lit controls and panels. */
+    --ds-glow: rgb(250 236 221 / 0.28);
+    --ds-accent-glow: rgb(250 175 88 / 0.45);
+    --ds-danger-glow: rgb(247 93 89 / 0.5);
+
+    /* A low crimson haze from above (Mandy) and a static film grain. */
+    --ds-haze: radial-gradient(120% 70% at 50% -10%, rgb(192 54 62 / 0.12), transparent 70%);
+    --ds-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 0.92  0 0 0 0 0.85  0 0 0 0.09 0'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
+
+    --ds-radius: 10px;
+
+    --ds-font-display: var(--font-lgc-display), "Arial Narrow", sans-serif;
+    --ds-font-sans: var(--font-lgc-sans), "Helvetica Neue", Arial, sans-serif;
+    --ds-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    background-color: var(--ds-bg);
+    background-image: var(--ds-grain), var(--ds-haze);
+    color: var(--ds-fg);
+    font-family: var(--ds-font-sans);
+  }
+
+  /*
+   * Range inputs: a soft rounded track and a round, lit knob that blooms on hover.
+   * The input element keeps the 24 px hit height from Slider.
+   */
+  [data-ds="light-grain-color"] input[type="range"] {
+    appearance: none;
+    background: transparent;
+  }
+
+  [data-ds="light-grain-color"] input[type="range"]::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--ds-border-strong);
+  }
+
+  [data-ds="light-grain-color"] input[type="range"]::-moz-range-track {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--ds-border-strong);
+  }
+
+  [data-ds="light-grain-color"] input[type="range"]::-moz-range-progress {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--ds-fg);
+  }
+
+  [data-ds="light-grain-color"] input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    margin-top: -6px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--ds-fg);
+    box-shadow: 0 0 8px var(--ds-glow);
+  }
+
+  [data-ds="light-grain-color"] input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--ds-fg);
+    box-shadow: 0 0 8px var(--ds-glow);
+  }
+
+  @media (hover: hover) {
+    [data-ds="light-grain-color"] input[type="range"]:enabled:hover::-webkit-slider-thumb {
+      box-shadow: 0 0 16px 4px var(--ds-glow);
+    }
+
+    [data-ds="light-grain-color"] input[type="range"]:enabled:hover::-moz-range-thumb {
+      box-shadow: 0 0 16px 4px var(--ds-glow);
+    }
+  }
+
+  [data-ds="light-grain-color"] input[type="range"][data-force~="hover"]::-webkit-slider-thumb {
+    box-shadow: 0 0 16px 4px var(--ds-glow);
+  }
+
+  [data-ds="light-grain-color"] input[type="range"][data-force~="hover"]::-moz-range-thumb {
+    box-shadow: 0 0 16px 4px var(--ds-glow);
+  }
+
+  [data-ds="light-grain-color"] input[type="range"]:enabled:is(:active, [data-force~="active"])::-webkit-slider-thumb {
+    background: var(--ds-muted);
+  }
+
+  [data-ds="light-grain-color"] input[type="range"]:enabled:is(:active, [data-force~="active"])::-moz-range-thumb {
+    background: var(--ds-muted);
+  }
+}

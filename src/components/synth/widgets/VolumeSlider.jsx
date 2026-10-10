@@ -1,7 +1,7 @@
 'use client';
 
 import { useId } from 'react';
-import { Slider } from '@/design-systems/meta';
+import { useDesignSystem } from '../design-system-context';
 import { VOLUME, VOLUME_OFF, coerceVolume } from '@/audio/synths/param-defs';
 import { formatVolume, parseVolume } from '../format';
 
@@ -14,6 +14,7 @@ const toDb = (pos) => (pos <= 0 ? VOLUME_OFF : VOLUME.min + (pos - 1) * VOLUME.s
  * values ("−6", "−12.5 dB", "Off"), clamped to the slider's range; the master leaves it off.
  */
 export default function VolumeSlider({ label = 'Volume', value, onChange, maxDb = VOLUME.max, defaultDb, disabled, labelHidden, editable = false }) {
+  const { Slider } = useDesignSystem();
   const id = useId();
   const text = formatVolume(value);
   const edit = (typed) => {

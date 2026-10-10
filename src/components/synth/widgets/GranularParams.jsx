@@ -1,6 +1,6 @@
 'use client';
 
-import { FileButton } from '@/design-systems/meta';
+import { useDesignSystem } from '../design-system-context';
 import { PARAM_DEFS } from '@/audio/synths/param-defs';
 import ParamControl from './ParamControl';
 
@@ -12,6 +12,7 @@ const SAMPLE_ACCEPT = 'audio/*,.wav,.mp3,.ogg,.oga,.flac,.m4a,.aac';
  * A loaded sample is kept when another source is chosen, so switching back needs no reload.
  */
 export default function GranularParams({ onSample, ...props }) {
+  const { FileButton } = useDesignSystem();
   const { widget, disabled } = props;
   const [sourceDef, ...rest] = PARAM_DEFS.granular;
   const sample = widget.sample;

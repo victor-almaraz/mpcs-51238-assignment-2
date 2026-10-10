@@ -1,7 +1,7 @@
 'use client';
 
 import { useId } from 'react';
-import { Slider } from '@/design-systems/meta';
+import { useDesignSystem } from '../design-system-context';
 import { fromNorm, toNorm, usesNativeSteps, NORM_STEPS } from '@/audio/synths/scaling';
 import { formatParam, parseParam } from '../format';
 
@@ -11,6 +11,7 @@ import { formatParam, parseParam } from '../format';
  * values (parseParam); the reducer clamps and snaps them (coerceParam).
  */
 export default function ParamSlider({ def, value, onChange, disabled }) {
+  const { Slider } = useDesignSystem();
   const id = useId();
   const native = usesNativeSteps(def);
   const text = formatParam(def, value);

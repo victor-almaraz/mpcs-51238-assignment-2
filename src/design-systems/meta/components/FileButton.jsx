@@ -6,7 +6,7 @@ import { controlBase, controlSizes, cx, peerFocusRing, secondaryLabelLook } from
 /**
  * File picker styled as a secondary button. The real input stays focusable
  * (sr-only) and the label shows its focus ring via peer-focus-visible.
- * `className` goes on the wrapper, other props on the input.
+ * `className` goes on the wrapper, other props on the input; `data-force` goes on both.
  */
 export default function FileButton({
   id,
@@ -18,6 +18,7 @@ export default function FileButton({
   size = 'lg',
   className,
   ref,
+  'data-force': force,
   ...rest
 }) {
   const autoId = useId();
@@ -40,11 +41,13 @@ export default function FileButton({
         disabled={disabled}
         onChange={handleChange}
         className="peer sr-only"
+        data-force={force}
         {...rest}
       />
       <label
         htmlFor={inputId}
         aria-busy={busy ? 'true' : undefined}
+        data-force={force}
         className={cx(
           controlBase,
           controlSizes[size] ?? controlSizes.md,

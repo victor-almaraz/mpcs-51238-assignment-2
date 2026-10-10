@@ -14,7 +14,8 @@ import VolumeSlider from './widgets/VolumeSlider';
  * keyboard (`detail === 0`) and the later clicks of a double-click (`detail > 1`) are ignored,
  * and the session ignores Reset for 1 s after a Panic, so neither a key nor fast repeated
  * clicks bring sound back. Moving the master volume also unmutes, which keeps a keyboard
- * path. The label carries the state, so the button has no aria-pressed.
+ * path. The label carries the state, so the button has no aria-pressed. Panic uses the danger
+ * variant so it is the most visible control on the page; Reset is a plain secondary button.
  *
  * On mobile the wrapper is `display: contents` so the button can join the first row of the
  * bottom bar (order-2) while the volume and meter form the second row (order-3).
@@ -47,6 +48,7 @@ export default function MasterSection({ ui, onMaster, onPanic, onUnmute, meterRe
         {ui.reducedSafety && <span className="text-sm">Reduced safety mode</span>}
       </div>
       <Button
+        variant={ui.masterMuted ? 'secondary' : 'danger'}
         size="lg"
         onClick={onClick}
         aria-keyshortcuts={ui.masterMuted ? undefined : 'Escape'}

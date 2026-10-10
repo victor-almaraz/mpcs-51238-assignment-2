@@ -1,0 +1,162 @@
+/*
+ * Contrast/Form design system (mood board 2). A page opts in with
+ * data-ds="contrast-form" on its root element, together with the class from
+ * fonts.js (fontClassName), which defines --font-cf-display and --font-cf-sans.
+ *
+ * A dark ground lit from one source: near-black stage, warm "limelight" white
+ * for text and lit (selected) surfaces, hand-tint colours used sparingly.
+ * Light is graphic: flat, hard-edged planes, never soft washes or glows.
+ *
+ * Colour is set in OKLCH (lightness L, chroma C, hue H) and written as hex:
+ *   Inks, a CMYK set from the serpentine-dance images: cyan (04), magenta (the
+ *   pink of 02), yellow (03), with the black ground as key. They share
+ *   L 0.75-0.84 and C 0.095-0.115, so no ink outshines another and the level
+ *   gradients (cyan → magenta → yellow, interpolated in OKLCH) stay clean.
+ *   Neutrals carry the accent's hue (H 355) at C <= 0.016: rose-tinted shadows
+ *   under a warm light (fg H 80), so the greys never pull toward the khaki of
+ *   the light or against the pink.
+ *   Status comes from the inks: warning is yellow, success is cyan, danger is
+ *   the magenta-over-yellow overprint (vermilion, H 36), darker and more
+ *   saturated than the accent so the two do not read as one colour.
+ *
+ * Contrast (WCAG 2.2):
+ *   fg: 16.0:1 on bg, 14.1:1 on surface-2, 11.3:1 on active
+ *   muted: 7.6:1 on bg, 6.1:1 on hover (text >= 4.5:1)
+ *   border-strong: 5.0:1 on surface, 4.7:1 on surface-2 (controls >= 3:1)
+ *   inks on surface: cyan 10.3:1, magenta 7.9:1, yellow 11.4:1
+ *   focus: 4.6:1 on bg, 4.0:1 on surface-2, 3.5:1 beside a selected fill;
+ *   1.8:1 against the accent, so the ring reads as distinct from the fill
+ *   accent-fg on accent 8.3:1
+ *   danger 5.7:1, warning 9.7:1, success 9.2:1 on their backgrounds
+ *   border is a divider only (1.6:1), never a control boundary.
+ * Status meaning never depends on colour: components add a word and glyph.
+ *
+ * Inside @layer base so Tailwind utilities on the same element still win.
+ */
+@layer base {
+  [data-ds="contrast-form"] {
+    color-scheme: dark;
+
+    /* Neutrals: H 355, C 0.006-0.016. */
+    --ds-bg: #0e0b0c;
+    --ds-surface: #171214;
+    --ds-surface-2: #1f191b;
+    --ds-hover: #292124;
+    --ds-active: #332a2d;
+
+    /* The light: L 0.93, C 0.020, H 80. */
+    --ds-fg: #efe7d9;
+    --ds-muted: #aa9ea2;
+
+    --ds-border: #3e3538;
+    --ds-border-strong: #8f8286;
+
+    /* Inks: Fuller's tinted blue (H 210), Toulouse-Lautrec's pink (H 2), Moser's yellow (H 92). */
+    --ds-ink-c: #6dcfdf;
+    --ds-ink-m: #ea8ea8;
+    --ds-ink-y: #e4c973;
+
+    /* Levels run cyan → magenta → yellow. */
+    --ds-level-low: var(--ds-ink-c);
+    --ds-level-mid: var(--ds-ink-m);
+    --ds-level-high: var(--ds-ink-y);
+
+    /* Magenta: Add Synth only. */
+    --ds-accent: var(--ds-ink-m);
+    --ds-accent-fg: #0e0b0c;
+    --ds-accent-hover: #f9aabf;
+
+    /* Selected controls are lit: limelight fill, dark text. */
+    --ds-selected: var(--ds-fg);
+    --ds-selected-fg: #0e0b0c;
+
+    /* Focus: the accent's hue, deeper (L 0.60, C 0.16, H 0). */
+    --ds-focus: #c94f7c;
+
+    /* Status from the inks; danger is the magenta-over-yellow overprint. */
+    --ds-danger: #eb7353;
+    --ds-danger-bg: #2e1710;
+    --ds-warning: var(--ds-ink-y);
+    --ds-warning-bg: #251e0e;
+    --ds-success: var(--ds-ink-c);
+    --ds-success-bg: #0f2125;
+
+    --ds-radius: 0px;
+
+    --ds-font-display: var(--font-cf-display), "Arial Narrow", sans-serif;
+    --ds-font-sans: var(--font-cf-sans), ui-sans-serif, system-ui, sans-serif;
+    --ds-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    background: var(--ds-bg);
+    color: var(--ds-fg);
+    font-family: var(--ds-font-sans);
+  }
+
+  /*
+   * Range inputs: a hairline track and a tall, narrow thumb (a screen on a bare
+   * stage). The input element keeps the 24 px hit height from Slider.
+   */
+  [data-ds="contrast-form"] input[type="range"] {
+    appearance: none;
+    background: transparent;
+  }
+
+  [data-ds="contrast-form"] input[type="range"]::-webkit-slider-runnable-track {
+    height: 2px;
+    background: var(--ds-border-strong);
+  }
+
+  [data-ds="contrast-form"] input[type="range"]::-moz-range-track {
+    height: 2px;
+    background: var(--ds-border-strong);
+  }
+
+  [data-ds="contrast-form"] input[type="range"]::-moz-range-progress {
+    height: 2px;
+    background: var(--ds-fg);
+  }
+
+  [data-ds="contrast-form"] input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 8px;
+    height: 22px;
+    margin-top: -10px;
+    border: 0;
+    border-radius: 0;
+    background: var(--ds-fg);
+  }
+
+  [data-ds="contrast-form"] input[type="range"]::-moz-range-thumb {
+    width: 8px;
+    height: 22px;
+    border: 0;
+    border-radius: 0;
+    background: var(--ds-fg);
+  }
+
+  @media (hover: hover) {
+    [data-ds="contrast-form"] input[type="range"]:enabled:hover::-webkit-slider-thumb {
+      box-shadow: 0 0 0 2px var(--ds-bg), 0 0 0 3px var(--ds-fg);
+    }
+
+    [data-ds="contrast-form"] input[type="range"]:enabled:hover::-moz-range-thumb {
+      box-shadow: 0 0 0 2px var(--ds-bg), 0 0 0 3px var(--ds-fg);
+    }
+  }
+
+  [data-ds="contrast-form"] input[type="range"][data-force~="hover"]::-webkit-slider-thumb {
+    box-shadow: 0 0 0 2px var(--ds-bg), 0 0 0 3px var(--ds-fg);
+  }
+
+  [data-ds="contrast-form"] input[type="range"][data-force~="hover"]::-moz-range-thumb {
+    box-shadow: 0 0 0 2px var(--ds-bg), 0 0 0 3px var(--ds-fg);
+  }
+
+  [data-ds="contrast-form"] input[type="range"]:enabled:is(:active, [data-force~="active"])::-webkit-slider-thumb {
+    background: var(--ds-muted);
+  }
+
+  [data-ds="contrast-form"] input[type="range"]:enabled:is(:active, [data-force~="active"])::-moz-range-thumb {
+    background: var(--ds-muted);
+  }
+}

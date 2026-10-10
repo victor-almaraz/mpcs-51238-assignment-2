@@ -47,6 +47,30 @@ export default function HomePage() {
                 Mood board 3: Light/Grain/Color
               </Link>
             </li>
+            <li>
+              <Link
+                href="/design-systems/industrial/"
+                className="inline-flex min-h-6 items-center underline underline-offset-4 rounded-ds hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+              >
+                Design system 1: Industrial (draft)
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/design-systems/contrast-form/"
+                className="inline-flex min-h-6 items-center underline underline-offset-4 rounded-ds hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+              >
+                Design system 2: Contrast/Form (draft)
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/design-systems/light-grain-color/"
+                className="inline-flex min-h-6 items-center underline underline-offset-4 rounded-ds hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+              >
+                Design system 3: Light/Grain/Color (draft)
+              </Link>
+            </li>
           </ul>
         </nav>
       </div>

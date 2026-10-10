@@ -2,10 +2,31 @@
 
 /*
  * Design-system tokens, each scoped to [data-ds="<style>"].
- * The three mood-board styles add their own files here in later steps:
- *   @import "../design-systems/<style>/tokens.css";
  */
 @import "../design-systems/meta/tokens.css";
+@import "../design-systems/industrial/tokens.css";
+@import "../design-systems/contrast-form/tokens.css";
+@import "../design-systems/light-grain-color/tokens.css";
+
+/*
+ * Interaction variants that also match a data-force attribute, so the
+ * design-system pages can show hover, active and focus states statically
+ * (data-force="hover", "active", "focus"; space-separated to combine).
+ * Without the attribute they behave as Tailwind's built-in variants.
+ */
+@custom-variant hover {
+  @media (hover: hover) {
+    &:hover {
+      @slot;
+    }
+  }
+  &[data-force~="hover"] {
+    @slot;
+  }
+}
+@custom-variant active (&:active, &[data-force~="active"]);
+@custom-variant focus (&:focus, &[data-force~="focus"]);
+@custom-variant focus-visible (&:focus-visible, &[data-force~="focus"]);
 
 /*
  * Semantic theme names. Components use only these utilities
@@ -35,9 +56,24 @@
   --color-warning: var(--ds-warning);
   --color-warning-bg: var(--ds-warning-bg);
 
+  --color-ink-c: var(--ds-ink-c, var(--ds-fg));
+  --color-ink-m: var(--ds-ink-m, var(--ds-fg));
+  --color-ink-y: var(--ds-ink-y, var(--ds-fg));
+  /* Level gradients (meter, harmonic bars, progress): low → mid → high. */
+  --color-level-low: var(--ds-level-low, var(--ds-fg));
+  --color-level-mid: var(--ds-level-mid, var(--ds-fg));
+  --color-level-high: var(--ds-level-high, var(--ds-fg));
+
+  /* Industrial: instrument windows, indicator lamps, the emergency-stop collar. */
+  --color-window: var(--ds-window, var(--ds-fg));
+  --color-lamp: var(--ds-lamp, var(--ds-fg));
+  --color-lamp-off: var(--ds-lamp-off, var(--ds-border-strong));
+  --color-collar: var(--ds-collar, var(--ds-fg));
+
   --radius-ds: var(--ds-radius, 0px);
 
   --font-sans: var(--ds-font-sans, ui-sans-serif, system-ui, sans-serif);
+  --font-display: var(--ds-font-display, var(--ds-font-sans, ui-sans-serif, system-ui, sans-serif));
   --font-mono: var(--ds-font-mono, ui-monospace, monospace);
 }
 

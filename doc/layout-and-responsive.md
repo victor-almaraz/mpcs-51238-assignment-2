@@ -24,13 +24,14 @@ Page structure, the rack grid, widget anatomy and responsive behaviour at 390 px
 <main class="px-4 md:px-8 …">
   <section aria-label="Synth rack" class="mx-auto w-full max-w-7xl rounded-ds border border-border-strong p-2 md:p-6">
     <!-- Add Synth -->
-    <ul class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"> <!-- one <li> per widget -->
+    <ul class="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3"> <!-- one <li> per widget -->
 ```
-- At 390 px: 1 column. Widgets are 340 px wide (16 px page padding, 1 px panel border and 8 px panel padding on each side). At 360 px they are 310 px, which still fits the Waveform options.
+- The smallest supported width is 390 px. There the rack has 1 column and widgets are 340 px wide (16 px page padding, 1 px panel border and 8 px panel padding on each side), the narrowest a widget gets.
+- From `lg` (1024 px): 2 columns, widgets about 440 px wide. Below `lg`, one column, so a widget is never narrower than the one-row header needs.
 - At 1440 px:
   - `max-w-7xl` (1280 px) minus the panel's border and 24 px padding on each side leaves 1230 px.
   - 3 columns with 16 px gaps gives widgets about 400 px wide.
-  - The widget is designed at ~360 px; its internal layout is identical at every breakpoint.
+  - The widget is designed to fit 340 px, its width at 390 px; its internal layout is identical at every breakpoint.
 - Widgets keep insertion order. Position does not encode routing; the part select and the Live chip do.
 - New widgets go at the end. After adding, focus moves to the new widget's heading, and the widget scrolls into view with `scrollIntoView({ block: 'nearest' })` (instant under reduced motion).
 
@@ -50,7 +51,7 @@ Page structure, the rack grid, widget anatomy and responsive behaviour at 390 px
 │ Cents     ─────●────────────   0 cents            │
 └────────────────────────────────────────────────────┘
 ```
-- Header: the title and the chips wrap onto two rows when the card is too narrow for one (phones); the title keeps at least 8 rem.
+- Header: one row at every width. The controls keep their size; the title takes the remaining space and truncates with an ellipsis when the row is short (full name in `title` and in the accessible name). Header gaps tighten below `sm`.
 - Collapse: the title is a `DisclosureButton` (▾ expanded, ▸ collapsed; `aria-expanded`, `aria-controls` the params and footer). A collapsed widget shows its header only. Collapse is session state and is not stored in patches.
 - Lock: the Lock chip (pressed = locked) disables every control that changes the sound or routing: params (including typed values, harmonic bars and Load File…), Part, Volume, Octave, Cents and Remove. Live, M and S stay enabled, so a locked widget can always be muted. The reducer ignores param, harmonic, sample and tuning actions on a locked widget. The lock is stored in patches.
 - Tuning: Octave (−3 to +3, step 1) and Cents (−100 to +100, step 1) shift every note the widget plays, file and live. The shift applies to notes that start after a change, and the shifted pitch is clamped to MIDI 0–127. Both are stored in patches (`patch-format.md`).
@@ -65,7 +66,7 @@ Page structure, the rack grid, widget anatomy and responsive behaviour at 390 px
 - Params order: sound source first, then shaping, then the envelope (attack, decay, sustain, release), then modulation. At most 8 controls per card (`synthesis-conventions.md`).
 - Granular: only while the File source is selected, a row under Source, aligned with the controls, holds "Load File…" (a `FileButton`, accepting `audio/*`) and the loaded file's name (truncated, full name in `title`), or "No file loaded: silent". A loaded sample is kept while another source is selected. Load errors use the error banner ("Couldn't load {file}: {reason}"); success shows a toast ("Loaded file {name} (1.8 s)").
 - Card style:
-  - `rounded-lg border border-neutral-300 bg-white p-3 md:p-4` (12 px padding on phones keeps the param rows from truncating at 360 px).
+  - `rounded-lg border border-neutral-300 bg-white p-3 md:p-4` (12 px padding on phones keeps the param rows from truncating at 390 px).
   - No shadow stacks, gradients, knobs, screws or textures.
 - Muted widgets:
   - Fade only the params area to `opacity-60`, and show the M chip as selected.
@@ -96,7 +97,7 @@ Page structure, the rack grid, widget anatomy and responsive behaviour at 390 px
   - `<main>` has `pb-32` so the last widget is not hidden behind the bar.
   - The viewport metadata sets `viewport-fit=cover`; `env()` insets require it.
 - Desktop (1440 px): both groups sit in one `sticky top-0` bar under the header, Master first so it does not move when the Song group appears. The File menu is pushed to the right end of the first row. The Song group wraps to a second line when the bar is too narrow. The live-input row is the bar's last row (`basis-full`), so it stays reachable while scrolling the rack.
-- Panic is visible at every breakpoint.
+- Panic is visible at every breakpoint and uses the danger Button variant, so it is the most visible control on the page in every design system.
 - One component with responsive classes. Rendering two transports would duplicate controls in the accessibility tree.
 
 ## Add Synth menu

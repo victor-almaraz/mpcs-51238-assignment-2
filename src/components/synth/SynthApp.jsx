@@ -373,7 +373,7 @@ export default function SynthApp() {
             <AddSynthMenu onAdd={addSynth} pluckAvailable={ui.caps.ks} className="w-full md:w-auto md:self-start" />
           )}
           {!empty && (
-            <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
               {rack.widgets.map((w) => (
                 <li key={w.id}>
                   <WidgetCard

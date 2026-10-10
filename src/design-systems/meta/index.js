@@ -24,3 +24,6 @@ export { default as Toast } from './components/Toast';
 export { default as ToggleButton } from './components/ToggleButton';
 export { default as ValueField } from './components/ValueField';
 export { default as VisuallyHidden } from './components/VisuallyHidden';
+
+/** The meta style uses system fonts, so no font class is needed. */
+export const fontClassName = '';
