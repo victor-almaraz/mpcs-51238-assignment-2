@@ -1,79 +1,88 @@
 import Link from 'next/link';
+import { Heading } from '@/design-systems/meta';
+import DirectionCard from '@/components/hub/DirectionCard';
+import { DIRECTIONS } from '@/components/hub/directions';
+import { STYLE } from '@/components/synth/style';
 
 export const metadata = {
-  title: { absolute: 'MPCS 51238 — Assignment 2' },
+  title: { absolute: 'Synthesizer Rack · MPCS 51238 Assignment 2' },
 };
 
-/* Placeholder hub (step 1). The full hub page arrives in step 5. */
+const linkClass =
+  'inline-flex min-h-6 items-center text-sm underline underline-offset-4 rounded-ds hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus';
+
+/** The hub: the rack, then the three style directions, then the test pages. */
 export default function HomePage() {
+  const rackStyle = DIRECTIONS.find((d) => d.style === STYLE);
   return (
-    <main data-ds="meta" className="min-h-screen bg-bg text-fg">
-      <div className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-8 md:px-8">
-        <h1 className="text-xl font-semibold">MPCS 51238 — Assignment 2</h1>
-        <p className="text-sm">
-          A browser synthesizer rack. Mood boards and design systems will be linked here as they are added.
-        </p>
-        <nav aria-label="Project pages">
-          <ul className="flex flex-col gap-2 text-sm">
-            <li>
+    <div data-ds="meta" className="min-h-dvh bg-bg text-fg">
+      <header className="border-b border-border px-4 py-6 md:px-8 md:py-10">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-2">
+          <p className="text-sm text-muted">MPCS 51238 · Assignment 2</p>
+          <Heading level={1}>Synthesizer Rack</Heading>
+        </div>
+      </header>
+
+      <main className="px-4 py-8 md:px-8 md:py-12">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-12">
+          <section aria-labelledby="rack" className="flex max-w-prose flex-col gap-4">
+            <h2 id="rack" className="sr-only">
+              The rack
+            </h2>
+            <p>
+              A synthesizer rack that runs entirely in the browser: subtractive, FM, additive, pluck and granular
+              synths, played from a MIDI file, a MIDI device or the computer keyboard, with output limiting and a
+              Panic button that always stops the sound.
+            </p>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <Link
                 href="/synth/"
-                className="inline-flex min-h-6 items-center underline underline-offset-4 rounded-ds hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                className="inline-flex min-h-11 items-center gap-2 rounded-ds border border-accent bg-accent px-4 text-sm font-semibold text-accent-fg hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
-                Synth rack
+                Open the rack <span aria-hidden="true">→</span>
               </Link>
-            </li>
-            <li>
-              <Link
-                href="/mood-boards/industrial/"
-                className="inline-flex min-h-6 items-center underline underline-offset-4 rounded-ds hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-              >
-                Mood board 1: Industrial
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/mood-boards/contrast-form/"
-                className="inline-flex min-h-6 items-center underline underline-offset-4 rounded-ds hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-              >
-                Mood board 2: Contrast/Form
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/mood-boards/light-grain-color/"
-                className="inline-flex min-h-6 items-center underline underline-offset-4 rounded-ds hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-              >
-                Mood board 3: Light/Grain/Color
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/design-systems/industrial/"
-                className="inline-flex min-h-6 items-center underline underline-offset-4 rounded-ds hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-              >
-                Design system 1: Industrial
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/design-systems/contrast-form/"
-                className="inline-flex min-h-6 items-center underline underline-offset-4 rounded-ds hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-              >
-                Design system 2: Contrast/Form
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/design-systems/light-grain-color/"
-                className="inline-flex min-h-6 items-center underline underline-offset-4 rounded-ds hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-              >
-                Design system 3: Light/Grain/Color
-              </Link>
-            </li>
-          </ul>
-        </nav>
-      </div>
-    </main>
+              {rackStyle ? <span className="text-sm text-muted">In the {rackStyle.title} design system</span> : null}
+            </div>
+          </section>
+
+          <section aria-labelledby="directions" className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1 border-b border-border pb-2">
+              <Heading level={2} id="directions">
+                Style directions
+              </Heading>
+              <p className="max-w-prose text-sm text-muted">
+                Three directions, each a mood board of 25–30 artifacts and a design system built from it. Every
+                design-system page shows the rack’s components in every state they reach.
+              </p>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {DIRECTIONS.map((d) => (
+                <DirectionCard key={d.style} direction={d} inRack={d.style === STYLE} />
+              ))}
+            </div>
+          </section>
+
+          <section aria-labelledby="tests" className="flex flex-col gap-3">
+            <Heading level={2} id="tests" className="border-b border-border pb-2">
+              Test pages
+            </Heading>
+            <ul className="flex flex-col gap-2">
+              <li>
+                <Link href="/dev/safety/" className={linkClass}>
+                  Audio safety acceptance tests
+                </Link>{' '}
+                <span className="text-sm text-muted">— offline renders through the output chain at worst-case levels</span>
+              </li>
+              <li>
+                <Link href="/dev/core/" className={linkClass}>
+                  Audio-core functional tests
+                </Link>{' '}
+                <span className="text-sm text-muted">— every synth, envelope, voice cap and the song render</span>
+              </li>
+            </ul>
+          </section>
+        </div>
+      </main>
+    </div>
   );
 }
