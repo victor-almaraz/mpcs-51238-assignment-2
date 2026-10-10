@@ -81,10 +81,10 @@ export default function Transport({ session, ui, song, songName, readingMidi, fi
       aria-label="Transport"
       aria-busy={readingMidi || undefined}
       onKeyDown={onKeyDown}
-      className={`border-b border-border bg-surface ${rowPad} pb-3 lg:sticky lg:top-0 lg:z-30 lg:py-2`}
+      className={`border-b border-border bg-surface ${rowPad} pt-1 pb-4 lg:sticky lg:top-0 lg:z-30 lg:py-4`}
     >
-      <div className={`${rowInner} flex flex-col gap-2 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-6`}>
-        <div ref={barRef} className={`fixed inset-x-0 bottom-0 z-30 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border bg-surface ${rowPad} pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:static lg:z-auto lg:flex-nowrap lg:gap-6 lg:border-0 lg:p-0`}>
+      <div className={`${rowInner} flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-6 lg:gap-y-3`}>
+        <div ref={barRef} className={`fixed inset-x-0 bottom-0 z-30 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border bg-surface ${rowPad} pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:order-1 lg:static lg:z-auto lg:flex-nowrap lg:gap-6 lg:border-0 lg:p-0`}>
           <div className="order-1 flex min-w-0 flex-1 flex-wrap items-center gap-2 lg:order-none lg:flex-none">
             <RecordControls
               ui={ui}
@@ -96,16 +96,19 @@ export default function Transport({ session, ui, song, songName, readingMidi, fi
           <MasterSection ui={ui} onMaster={actions.master} onPanic={actions.panic} onUnmute={actions.unmute} meterRef={meterRef} limitRef={limitRef} />
         </div>
         {/* Mobile: Song and the menu share the in-flow row under the header. lg: `contents`
-            makes both direct items of the bar, and the menu is pushed to its right end. */}
-        <div className="flex items-start gap-2 pt-2 lg:contents">
+            makes both direct items of the bar: the menu is pushed to the right end of the first
+            row (after Master), and Song takes its own full-width row below, flush with the rows
+            around it. Master, Song and the menu need about 1,360 px in one row, wider than the
+            bar's 1,216 px content, so Song never shares the first row. */}
+        <div className="flex items-start gap-2 pt-3 lg:contents">
           {(song || readingMidi) && (
-            <div className="min-w-0 flex-1 lg:flex-none xl:border-l xl:border-border xl:pl-6">
+            <div className="min-w-0 flex-1 lg:order-3 lg:basis-full">
               <SongControls ui={ui} song={song} songName={songName} readingMidi={readingMidi} posRef={posRef} actions={actions} />
             </div>
           )}
-          <div className="ml-auto shrink-0">{fileMenu}</div>
+          <div className="ml-auto shrink-0 lg:order-2">{fileMenu}</div>
         </div>
-        <div className="empty:hidden lg:basis-full">
+        <div className="empty:hidden lg:order-4 lg:basis-full">
           <LiveInputControls ui={ui} actions={actions} />
         </div>
       </div>

@@ -60,11 +60,12 @@ export const buttonVariants = {
     'border-border-strong bg-surface text-fg enabled:hover:border-fg enabled:hover:bg-hover enabled:active:bg-active',
   ghost: 'border-transparent bg-transparent text-fg enabled:hover:bg-hover enabled:active:bg-active',
   /*
-   * Panic: an emergency stop. Red cap, white legend, yellow collar with a dark edge; the
-   * focus ring sits outside the collar.
+   * Panic: an emergency stop. Red cap, white legend, and a yellow collar drawn inside the
+   * button's own 44 px box (a 2 px border) with a 1 px dark edge, so Panic matches the height
+   * of its neighbours; the focus ring sits just outside the edge.
    */
   danger:
-    'border-danger bg-danger text-white shadow-[0_0_0_3px_var(--ds-collar),0_0_0_4px_var(--ds-fg)] focus-visible:outline-offset-[6px]! enabled:hover:border-[color-mix(in_oklch,var(--ds-danger)_88%,white)] enabled:hover:bg-[color-mix(in_oklch,var(--ds-danger)_88%,white)] enabled:active:shadow-[inset_0_2px_5px_rgb(0_0_0/0.4),0_0_0_3px_var(--ds-collar),0_0_0_4px_var(--ds-fg)]',
+    'border-2 border-collar bg-danger text-white shadow-[0_0_0_1px_var(--ds-fg)] focus-visible:outline-offset-[3px]! enabled:hover:bg-[color-mix(in_oklch,var(--ds-danger)_88%,white)] enabled:active:shadow-[inset_0_2px_5px_rgb(0_0_0/0.4),0_0_0_1px_var(--ds-fg)]',
 };
 
 /** Pressed / checked look: ink cap, light legend, lit lamp. */
@@ -78,7 +79,7 @@ export const secondaryLabelLook =
   'border-border-strong bg-surface text-fg hover:border-fg hover:bg-hover active:bg-active';
 
 /** Field labels beside sliders, selects and segmented controls: small silkscreened capitals. */
-export const fieldLabel = 'w-24 shrink-0 text-xs font-bold uppercase tracking-[0.06em] text-muted';
+export const fieldLabel = 'w-24 shrink-0 text-[0.6875rem] font-bold uppercase tracking-[0.04em] text-muted';
 
 /** A readout window: dark glass, amber digits. */
 export const readout = 'rounded-ds bg-window text-lamp tabular-nums';

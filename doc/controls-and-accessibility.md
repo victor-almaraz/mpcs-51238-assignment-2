@@ -130,7 +130,7 @@ How each control is built, its states and keyboard support, how it maps to desig
 | Meter, Limit / Clip badges | Meter; Badge |
 | Render progress | ProgressBar |
 | Start notice | Dialog |
-| Remove, dismiss ✕ | IconButton (ghost) |
+| Remove, unload MIDI file, dismiss ✕ | IconButton (ghost) |
 | Audio banners, errors | Alert |
 | Status messages | Toast (with Disclosure for details) |
 | Empty rack | EmptyState |
@@ -145,7 +145,7 @@ Shared interaction states apply to every interactive component unless the row sa
 | **Button** | Play/Stop, Render to WAV, Cancel, Octave −/+, Connect MIDI Device, Panic / Reset, Resume Audio, Restart Audio, Restore Level, Start Audio / Cancel (dialog), Undo / Download Again (toasts) | Variant: secondary (default), primary (inside the Add Synth MenuButton), danger (Panic), ghost (inside IconButton). Size: lg (44 px; transport), md (32 px; toasts, live input, banners, dialog). Disabled with a `title` reason: Play/Stop (no song yet), Render to WAV (no song, recording, muted after Panic, render in progress), Octave −/+ (at the range limits). Panic / Reset: label "Panic" (danger variant) while sound plays, "Reset" (secondary) while muted, with a `title` and described-by hint (size lg). Content: text, or glyph + text (▶ Play / ■ Stop). |
 | **ToggleButton** | Record, Play with Keyboard | Unpressed and pressed (`aria-pressed`, black fill). Record: disabled with a reason (no recorder, audio not started, a file being saved or rendered). |
 | **Chip** | Live, M (mute), S (solo), Lock | Unpressed and pressed, independently per chip. Lock carries a `title` ("Lock to prevent changes" / "Locked: unlock to edit"). |
-| **IconButton** | Remove widget (✕), dismiss in Alert and Toast (✕) | Ghost: no border until hover or active. Remove: disabled while the widget is locked, with the `title` "Unlock to remove". |
+| **IconButton** | Remove widget (✕), unload the MIDI file (✕ before the song name; disabled while rendering, with the `title` "Cancel the render to unload the file"), dismiss in Alert and Toast (✕) | Ghost: no border until hover or active. Remove: disabled while the widget is locked, with the `title` "Unlock to remove". |
 | **DisclosureButton** | Widget title (collapse and expand) | Expanded (▾) and collapsed (▸), `aria-expanded`; label truncates with an ellipsis. |
 | **MenuButton** | Add Synth, File | Variant: primary (Add Synth), secondary (File). Placement: flow (Add Synth: full-width list on mobile, anchored dropdown from `md`), end (File: right-aligned dropdown at every size). Button: closed and open (`aria-expanded`, ▾). Items: plain; with a description ("Pluck — Plucked string"); disabled with "Unavailable: {reason}" (Pluck without the worklet, Save Patch with an empty rack, WAV format while capturing, "Reading MIDI File…"); radio checked (●) and unchecked (○); focused item (keyboard); separator. |
 | **FileButton** | Load File… (granular, File source only) | Size md. Disabled while the widget is locked. No busy state is reached. |
@@ -190,6 +190,7 @@ Defined but not reached by the app (the design-system pages may show them, marke
 | Error: MIDI access denied | `requestMIDIAccess` rejects (user, policy, Firefox without a gesture or a device) | alert "MIDI access was blocked ({error name})"; Connect button stays available (`live-input.md` "Requesting access") |
 | Error: device disconnected | input `state` becomes `disconnected` | status "<device> disconnected"; its held notes released |
 | Success: MIDI loaded | parse ok | "Loaded <name> — 6 parts, 3:10"; warnings count if any |
+| MIDI file unloaded | ✕ before the song name | playback stops; the Song group is removed; widgets return to "All parts" and keep their part as requested for the next file; toast "Unloaded <name>" with Undo (reloads it); focus moves to the File menu |
 | Error: audio fault | safety stage `fault` | assertive: "Audio fault — output muted and reset" |
 | Error: reduced safety mode | AudioWorklet unavailable | master section text "Reduced safety mode"; master max −6.5 dB (gain 0.5 on the 0.5 dB grid) |
 | Warning: level reduced | sustained-level duck | banner "Level reduced — sustained loud output" + "Restore Level" |

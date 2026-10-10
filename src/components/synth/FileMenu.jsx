@@ -13,9 +13,10 @@ const FORMATS = [
  * by Record and Render (recording.md "UI"). The file inputs are visually hidden and
  * opened from the menu items; focus returns to the menu button.
  */
-export default function FileMenu({ ui, hasWidgets, readingMidi, format, onFormat, actions }) {
+export default function FileMenu({ ui, hasWidgets, readingMidi, format, onFormat, actions, buttonRef: outerRef }) {
   const { MenuButton } = useDesignSystem();
-  const buttonRef = useRef(null);
+  const ownRef = useRef(null);
+  const buttonRef = outerRef ?? ownRef;   // SynthApp passes one to return focus here after unloading a song
   const midiRef = useRef(null);
   const patchRef = useRef(null);
   const capturing = ui.recState !== 'idle' || ui.renderState !== 'idle';

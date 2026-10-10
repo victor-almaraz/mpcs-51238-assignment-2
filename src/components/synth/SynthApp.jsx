@@ -58,6 +58,7 @@ export default function SynthApp() {
   const [ui, setUi] = useState(INITIAL_UI);
   const [session, setSession] = useState(null);
   const [loaded, setLoaded] = useState(null);           // { song, name }
+  const fileButton = useRef(null);                        // the File menu button: focus lands here after unloading
   const [readingMidi, setReadingMidi] = useState(false);
   const [format, setFormat] = useState('pcm16');
   const [polite, setPolite] = useState(null);
@@ -266,6 +267,24 @@ export default function SynthApp() {
       .finally(() => setReadingMidi(false));
   };
 
+  /**
+   * Unloads the MIDI file: stops playback (releasing its voices) and returns every widget to
+   * All parts, keeping its part as requested so the same file brings it back. Undo reloads it.
+   */
+  const unloadMidi = () => {
+    if (!loaded) return;
+    const prev = loaded;
+    session?.setSong(null, null);
+    setLoaded(null);
+    fileButton.current?.focus();   // the ✕ unmounts with the song; the File button never does
+    dispatch({ type: 'parts', resolve: (w) => resolvePart(w.requestedPart ?? w.part, null, [], w.partLabel) });
+    sayWithUndo(`Unloaded ${prev.name}`, () => {
+      session?.setSong(prev.song, prev.name);
+      setLoaded(prev);
+      dispatch({ type: 'parts', resolve: (w) => resolvePart(w.requestedPart ?? w.part, prev.song, [], w.partLabel) });
+    });
+  };
+
   /** Replaces the rack at once; a non-empty rack can be brought back with Undo (GNOME HIG). */
   const applyPatch = (parsed) => {
     const previous = rack.widgets;
@@ -311,6 +330,7 @@ export default function SynthApp() {
     panic: () => session?.panic(),
     unmute: () => session?.unmute(),
     loadMidi,
+    unloadMidi,
     loadPatch,
     savePatch: () => {
       savePatch(rack.widgets);
@@ -360,6 +380,7 @@ export default function SynthApp() {
               format={format}
               onFormat={setFormat}
               actions={actions}
+              buttonRef={fileButton}
             />
           }
           actions={actions}

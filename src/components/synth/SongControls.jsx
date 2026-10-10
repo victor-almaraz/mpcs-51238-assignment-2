@@ -4,16 +4,28 @@ import { useDesignSystem } from './design-system-context';
 import { formatClock } from './format';
 
 /**
- * Song name, Play/Stop, position, Render to WAV and render progress. Shown only once a
- * MIDI file is loaded or being read. The position text is written per animation frame
- * by Transport through `posRef`.
+ * The ✕ that unloads the file (before the name, at the row's start, where it is easy to reach),
+ * the song name, Play/Stop, position, Render to WAV and render
+ * progress. Shown only once a MIDI file is loaded or being read. The position text is written
+ * per animation frame by Transport through `posRef`. Unloading is disabled while rendering.
  */
 export default function SongControls({ ui, song, songName, readingMidi, posRef, actions }) {
-  const { Button, ProgressBar, TextOutput } = useDesignSystem();
+  const { Button, IconButton, ProgressBar, TextOutput } = useDesignSystem();
   const rendering = ui.renderState !== 'idle';
   const recording = ui.recState !== 'idle';
   return (
     <div role="group" aria-label="MIDI song" className="flex min-w-0 flex-wrap items-center gap-2">
+      {song && !readingMidi && (
+        <IconButton
+          label={`Unload ${songName}`}
+          onClick={actions.unloadMidi}
+          disabled={rendering}
+          title={rendering ? 'Cancel the render to unload the file' : undefined}
+          className="-mr-1"
+        >
+          ✕
+        </IconButton>
+      )}
       <span className="max-w-48 truncate text-sm font-semibold" title={songName ?? undefined}>
         {readingMidi ? 'Reading MIDI file…' : songName}
       </span>

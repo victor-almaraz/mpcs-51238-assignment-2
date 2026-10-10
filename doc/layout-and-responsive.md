@@ -7,7 +7,7 @@ Page structure, the rack grid, widget anatomy and responsive behaviour at 390 px
 1. **Header (hero):** page title "Synthesizer Rack" (the only H1) and a link back to the hub.
 2. **Transport band:** all meta controls in one section with a bottom border, which separates them from the rack.
    - **Master** (always shown): Record toggle and recording indicator (`recording.md`), master volume, meter, Limit badge, Panic / Reset (`audio-safety.md`).
-   - **Song** (shown only once a MIDI file is loaded or being read): file name, Play/Stop toggle, position `0:42 / 3:10`, Render to WAV and render progress.
+   - **Song** (shown only once a MIDI file is loaded or being read): an ✕ that unloads the file (before the name, at the row's start), file name, Play/Stop toggle, position `0:42 / 3:10`, Render to WAV and render progress.
    - **File menu** (always shown, at the end of the first row; see "File menu").
    - **Live input** (last row): Play with Keyboard, octave, Connect MIDI Device, device status (`live-input.md`).
 3. **Banners** (only when needed): ongoing audio states and errors.
@@ -92,11 +92,11 @@ Page structure, the rack grid, widget anatomy and responsive behaviour at 390 px
 
 ## Transport placement
 - Mobile (390 px):
-  - The Master group forms a **sticky bottom bar** in two rows: `fixed inset-x-0 bottom-0 border-t bg-white pb-[env(safe-area-inset-bottom)]`. Row 1: Record, Panic. Row 2: master volume, meter, Limit badge.
+  - The Master group forms a **sticky bottom bar** in two rows: `fixed inset-x-0 bottom-0 border-t bg-white pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]`. Row 1: Record, Panic. Row 2: master volume, meter, Limit badge.
   - The Song group and the File menu are not sticky; they share a row under the header, with the File menu at its right end. The live-input row follows, and the band's bottom border closes the group.
   - `<main>` has `pb-32` so the last widget is not hidden behind the bar.
   - The viewport metadata sets `viewport-fit=cover`; `env()` insets require it.
-- Desktop (1440 px): both groups sit in one `sticky top-0` bar under the header, Master first so it does not move when the Song group appears. The File menu is pushed to the right end of the first row. The Song group wraps to a second line when the bar is too narrow. The live-input row is the bar's last row (`basis-full`), so it stays reachable while scrolling the rack.
+- Desktop (1440 px): both groups sit in one `sticky top-0` bar under the header, Master first so it does not move when the Song group appears. The File menu is pushed to the right end of the first row. The Song group, when a song is loaded, takes its own full-width row below, flush with the rows around it (Master, Song and the menu need about 1,360 px in one row; the bar's content is at most 1,216 px). The live-input row is the bar's last row (`basis-full`), so it stays reachable while scrolling the rack.
 - Panic is visible at every breakpoint and uses the danger Button variant, so it is the most visible control on the page in every design system.
 - One component with responsive classes. Rendering two transports would duplicate controls in the accessibility tree.
 

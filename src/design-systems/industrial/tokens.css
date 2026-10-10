@@ -28,8 +28,8 @@
  *   lit lamp 8.6:1 on a pressed (ink) control
  *   levels in the window: green 9.1:1, amber 9.7:1, red 4.4:1
  *   danger 4.9:1, warning 5.1:1, success 5.8:1 on their backgrounds
- *   border is a divider only (1.6:1), never a control boundary. The yellow collar
- *   is decorative: Panic's boundary is its red fill (5.2:1 on the panel).
+ *   border is a divider only (1.6:1), never a control boundary. Panic's yellow
+ *   collar sits inside its 44 px box; its boundary is a 1 px ink edge (12.4:1 on bg).
  * Status meaning never depends on colour: components add a word and glyph.
  *
  * Inside @layer base so Tailwind utilities on the same element still win.
