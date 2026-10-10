@@ -9,6 +9,7 @@ export { default as Dialog } from './components/Dialog';
 export { default as Disclosure } from './components/Disclosure';
 export { default as DisclosureButton } from './components/DisclosureButton';
 export { default as EmptyState } from './components/EmptyState';
+export { default as FieldLabel } from './components/FieldLabel';
 export { default as FileButton } from './components/FileButton';
 export { default as Heading } from './components/Heading';
 export { default as IconButton } from './components/IconButton';

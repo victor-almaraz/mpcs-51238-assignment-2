@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button, Disclosure, Toast } from '@/design-systems/meta';
+import { useDesignSystem } from './design-system-context';
 
 const ACTION_LABELS = { undo: 'Undo', 'download-again': 'Download Again' };
 
@@ -29,6 +29,7 @@ export default function StatusRegions({ polite, assertive, onAction, onDismiss }
 }
 
 function ToastSlot({ msg, onAction, onDismiss }) {
+  const { Button, Disclosure, Toast } = useDesignSystem();
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {

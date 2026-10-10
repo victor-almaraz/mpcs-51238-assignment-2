@@ -1,7 +1,7 @@
 'use client';
 
 import { useId } from 'react';
-import { Badge, Button, Meter } from '@/design-systems/meta';
+import { useDesignSystem } from './design-system-context';
 import { VOLUME } from '@/audio/synths/param-defs';
 import VolumeSlider from './widgets/VolumeSlider';
 
@@ -21,6 +21,7 @@ import VolumeSlider from './widgets/VolumeSlider';
  * bottom bar (order-2) while the volume and meter form the second row (order-3).
  */
 export default function MasterSection({ ui, onMaster, onPanic, onUnmute, meterRef, limitRef }) {
+  const { Badge, Button, Meter } = useDesignSystem();
   const hintId = useId();
   const onClick = (e) => {
     if (!ui.masterMuted) onPanic();

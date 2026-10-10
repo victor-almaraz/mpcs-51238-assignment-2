@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, ProgressBar, TextOutput } from '@/design-systems/meta';
+import { useDesignSystem } from './design-system-context';
 import { formatClock } from './format';
 
 /**
@@ -9,6 +9,7 @@ import { formatClock } from './format';
  * by Transport through `posRef`.
  */
 export default function SongControls({ ui, song, songName, readingMidi, posRef, actions }) {
+  const { Button, ProgressBar, TextOutput } = useDesignSystem();
   const rendering = ui.renderState !== 'idle';
   const recording = ui.recState !== 'idle';
   return (

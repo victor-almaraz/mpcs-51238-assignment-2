@@ -95,7 +95,7 @@ function Swatches() {
 
 /** Colour and type: the tokens every component is built from. */
 export default function Foundations({ ds, style }) {
-  const { Badge, Button, Chip, Heading, fontClassName } = ds;
+  const { Badge, Button, Chip, FieldLabel, Heading, fontClassName } = ds;
   return (
     <>
       <Entry
@@ -125,6 +125,10 @@ export default function Foundations({ ds, style }) {
               <Badge>Limit</Badge>
             </div>
             <span className="text-xs text-muted">Control labels</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <FieldLabel>Harmonics</FieldLabel>
+            <span className="text-xs text-muted">Field label (FieldLabel: labels the app places itself, such as Harmonics)</span>
           </div>
           <div className="flex max-w-prose flex-col gap-1">
             <p className="text-sm">

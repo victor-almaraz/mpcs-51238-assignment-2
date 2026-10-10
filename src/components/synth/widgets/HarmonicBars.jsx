@@ -7,7 +7,7 @@ const FRACTION = { unit: 'fraction' };
 
 /** Eight harmonic level bars, each with a typed percent field underneath (0–100). */
 export default function HarmonicBars({ values, onChange, disabled }) {
-  const { SliderGroup } = useDesignSystem();
+  const { FieldLabel, SliderGroup } = useDesignSystem();
   const silent = values.every((v) => v === 0);
   const edit = (i, typed) => {
     const v = parseParam(FRACTION, typed, '0 %');
@@ -15,7 +15,7 @@ export default function HarmonicBars({ values, onChange, disabled }) {
   };
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-sm">Harmonics</span>
+      <FieldLabel>Harmonics</FieldLabel>
       <SliderGroup
         label="Harmonic levels"
         values={values}

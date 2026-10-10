@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import Link from 'next/link';
-import { EmptyState, Heading } from '@/design-systems/meta';
+import { DesignSystemProvider } from './design-system-context';
+import { ds } from './style';
+
+const { EmptyState, Heading } = ds;
 import { VOLUME } from '@/audio/synths/param-defs';
 import { audioSessionSupported } from '@/audio/context';
 import { parseMidi, MAX_MIDI_BYTES } from '@/midi/parse';
@@ -332,70 +335,72 @@ export default function SynthApp() {
   const empty = rack.widgets.length === 0;
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className={`border-b border-border ${rowPad} py-6 md:py-10`}>
-        <div className={`${rowInner} flex flex-wrap items-end justify-between gap-x-6 gap-y-2`}>
-          <Heading level={1}>Synthesizer Rack</Heading>
-          <Link href="/" className="text-sm underline underline-offset-2 hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
-            Back to Hub
-          </Link>
-        </div>
-      </header>
+    <DesignSystemProvider value={ds}>
+      <div className="flex min-h-dvh flex-col">
+        <header className={`border-b border-border ${rowPad} py-6 md:py-10`}>
+          <div className={`${rowInner} flex flex-wrap items-end justify-between gap-x-6 gap-y-2`}>
+            <Heading level={1}>Synthesizer Rack</Heading>
+            <Link href="/" className="text-sm underline underline-offset-2 hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
+              Back to Hub
+            </Link>
+          </div>
+        </header>
 
-      <Transport
-        session={session}
-        ui={ui}
-        song={song}
-        songName={loaded ? loaded.name : null}
-        readingMidi={readingMidi}
-        fileMenu={
-          <FileMenu
-            ui={ui}
-            hasWidgets={!empty}
-            readingMidi={readingMidi}
-            format={format}
-            onFormat={setFormat}
-            actions={actions}
-          />
-        }
-        actions={actions}
-      />
+        <Transport
+          session={session}
+          ui={ui}
+          song={song}
+          songName={loaded ? loaded.name : null}
+          readingMidi={readingMidi}
+          fileMenu={
+            <FileMenu
+              ui={ui}
+              hasWidgets={!empty}
+              readingMidi={readingMidi}
+              format={format}
+              onFormat={setFormat}
+              actions={actions}
+            />
+          }
+          actions={actions}
+        />
 
-      <main className={`flex flex-1 flex-col gap-4 ${rowPad} pt-6 pb-40 lg:pb-8`}>
-        <AudioBanners ui={ui} alerts={alerts} actions={actions} />
+        <main className={`flex flex-1 flex-col gap-4 ${rowPad} pt-6 pb-40 lg:pb-8`}>
+          <AudioBanners ui={ui} alerts={alerts} actions={actions} />
 
-        <section aria-label="Synth rack" className={`${rowInner} ${rackPanel} flex flex-col gap-4`}>
-          {empty ? (
-            <EmptyState title="No synths yet. Add a synth to start.">
-              <AddSynthMenu onAdd={addSynth} pluckAvailable={ui.caps.ks} />
-            </EmptyState>
-          ) : (
-            <AddSynthMenu onAdd={addSynth} pluckAvailable={ui.caps.ks} className="w-full md:w-auto md:self-start" />
-          )}
-          {!empty && (
-            <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
-              {rack.widgets.map((w) => (
-                <li key={w.id}>
-                  <WidgetCard
-                    widget={w}
-                    song={song}
-                    pluckEngine={pluckEngine}
-                    headingRef={(el) => {
-                      if (el) headings.current.set(w.id, el);
-                      else headings.current.delete(w.id);
-                    }}
-                    actions={widgetActions}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+          <section aria-label="Synth rack" className={`${rowInner} ${rackPanel} flex flex-col gap-4`}>
+            {empty ? (
+              <EmptyState title="No synths yet. Add a synth to start.">
+                <AddSynthMenu onAdd={addSynth} pluckAvailable={ui.caps.ks} />
+              </EmptyState>
+            ) : (
+              <AddSynthMenu onAdd={addSynth} pluckAvailable={ui.caps.ks} className="w-full md:w-auto md:self-start" />
+            )}
+            {!empty && (
+              <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+                {rack.widgets.map((w) => (
+                  <li key={w.id}>
+                    <WidgetCard
+                      widget={w}
+                      song={song}
+                      pluckEngine={pluckEngine}
+                      headingRef={(el) => {
+                        if (el) headings.current.set(w.id, el);
+                        else headings.current.delete(w.id);
+                      }}
+                      actions={widgetActions}
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
 
-        <StatusRegions polite={polite} assertive={assertive} onAction={onStatusAction} onDismiss={dismissMessage} />
-      </main>
+          <StatusRegions polite={polite} assertive={assertive} onAction={onStatusAction} onDismiss={dismissMessage} />
+        </main>
 
-      <StartNotice open={noticeOpen} onStart={startFromNotice} onCancel={cancelNotice} silentSwitchNote={oldIOS} />
-    </div>
+        <StartNotice open={noticeOpen} onStart={startFromNotice} onCancel={cancelNotice} silentSwitchNote={oldIOS} />
+      </div>
+    </DesignSystemProvider>
   );
 }

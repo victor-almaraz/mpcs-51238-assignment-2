@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button, TextOutput, ToggleButton } from '@/design-systems/meta';
+import { useDesignSystem } from './design-system-context';
 import { isTouchOnly } from '@/live/keyboard';
 import { isMidiSupported } from '@/live/web-midi';
 
@@ -11,6 +11,7 @@ import { isMidiSupported } from '@/live/web-midi';
  * (live-input.md). Both checks run after hydration. Renders nothing when neither applies.
  */
 export default function LiveInputControls({ ui, actions }) {
+  const { Button, TextOutput, ToggleButton } = useDesignSystem();
   const [env, setEnv] = useState({ touchOnly: true, midi: false });
   useEffect(() => {
     setEnv({ touchOnly: isTouchOnly(), midi: isMidiSupported() });

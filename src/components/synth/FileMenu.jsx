@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
-import { MenuButton } from '@/design-systems/meta';
+import { useDesignSystem } from './design-system-context';
 
 const FORMATS = [
   { value: 'pcm16', label: 'WAV 16-Bit' },
@@ -14,6 +14,7 @@ const FORMATS = [
  * opened from the menu items; focus returns to the menu button.
  */
 export default function FileMenu({ ui, hasWidgets, readingMidi, format, onFormat, actions }) {
+  const { MenuButton } = useDesignSystem();
   const buttonRef = useRef(null);
   const midiRef = useRef(null);
   const patchRef = useRef(null);

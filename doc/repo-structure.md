@@ -118,7 +118,7 @@ Folder layout, routes, and which modules may import which. `<style>` stands for 
   - Every style defines `--ds-level-low`, `--ds-level-mid` and `--ds-level-high`, the three colours of the level gradients (meter, harmonic bars, render progress); the theme maps them to `level-low`, `level-mid` and `level-high`.
   - A page selects its style by setting `data-ds="<style>"` on its root element. The showcase pages set their own style; `/synth/` sets the chosen style.
 - Components use the semantic utilities only. Raw palette classes (`neutral-*`, `indigo-*`) in `layout-and-responsive.md` and `controls-and-accessibility.md` stand for the corresponding tokens.
-- The synth UI imports components from the chosen style only: `import { Button, Card } from '@/design-systems/<chosen>'`.
+- The rack uses one chosen style, named in `src/components/synth/style.js` (`STYLE`, `ds`). `/synth/` sets `data-ds={STYLE}` and the library's `fontClassName` on its root, and `SynthApp` provides the library through `DesignSystemProvider`. Synth components read their components with `useDesignSystem()`; none imports a style directly. The chosen style is Industrial.
 - Every library exports the same component names with the same props, plus `fontClassName`. The element that carries `data-ds` also takes `fontClassName`.
 - Fonts:
   - Fonts are open-licence and self-hosted. Google Fonts are not used.

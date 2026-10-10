@@ -1,10 +1,11 @@
 'use client';
 
 import { useRef } from 'react';
-import { Button, Dialog } from '@/design-systems/meta';
+import { useDesignSystem } from './design-system-context';
 
 /** Shown before the first audio start in a session (audio-safety.md "Start notice"). */
 export default function StartNotice({ open, onStart, onCancel, silentSwitchNote }) {
+  const { Button, Dialog } = useDesignSystem();
   const startRef = useRef(null);
   return (
     <Dialog

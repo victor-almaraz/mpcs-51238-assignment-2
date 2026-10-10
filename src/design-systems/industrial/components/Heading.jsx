@@ -14,7 +14,7 @@ export default function Heading({ level = 2, className, ref, ...rest }) {
         'font-bold uppercase',
         n === 1
           ? 'font-display text-[1.75rem] leading-none tracking-[0.01em] sm:text-5xl md:text-6xl'
-          : 'font-sans text-[0.8125rem] leading-tight sm:text-sm',
+          : 'font-sans text-[0.8125rem] leading-tight tracking-[-0.02em] sm:text-sm sm:tracking-normal',
         'rounded-ds',
         focusRing,
         className,

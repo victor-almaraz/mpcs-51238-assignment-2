@@ -1,10 +1,11 @@
 'use client';
 
-import { MenuButton } from '@/design-systems/meta';
+import { useDesignSystem } from './design-system-context';
 import { SYNTH_INFO, SYNTH_TYPES } from '@/audio/synths/param-defs';
 
 /** Primary button + menu of the five types; the only accent-coloured control. */
 export default function AddSynthMenu({ onAdd, pluckAvailable, className }) {
+  const { MenuButton } = useDesignSystem();
   const items = SYNTH_TYPES.map((type) => ({
     value: type,
     label: SYNTH_INFO[type].label,

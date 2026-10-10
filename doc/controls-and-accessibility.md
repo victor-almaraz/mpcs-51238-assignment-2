@@ -119,7 +119,7 @@ How each control is built, its states and keyboard support, how it maps to desig
 | Waveform / Source | SegmentedControl |
 | Param slider + typed value, widget volume, Octave, Cents | Slider with ValueField |
 | Master volume | Slider with a plain readout |
-| Harmonic bars + typed values | SliderGroup with ValueFields |
+| Harmonic bars + typed values | SliderGroup with ValueFields; its label is a FieldLabel |
 | Part select (MIDI parts) | Select |
 | Add Synth | MenuButton (primary) |
 | File menu (Load MIDI File…, Save Patch, Load Patch…, WAV format) | MenuButton (secondary, end-aligned, radio items) |
@@ -136,7 +136,7 @@ How each control is built, its states and keyboard support, how it maps to desig
 | Empty rack | EmptyState |
 
 ## Component inventory and states
-Every component of the meta design system (`src/design-systems/meta`) the app renders, with every state the app can reach. The design-system pages (`AGENTS.md`, step 3) show each component in each state listed here, for every design system.
+Every component a design-system library (`src/design-systems/<style>/`) provides and the app renders; all libraries implement the same set, with every state the app can reach. The design-system pages (`AGENTS.md`, step 3) show each component in each state listed here, for every design system.
 
 Shared interaction states apply to every interactive component unless the row says otherwise: **default, hover, active (pressed down), focus-visible** (2 px ring, offset 2 px; see "Interaction states"). **Disabled** is listed only where the app can reach it.
 
@@ -166,6 +166,7 @@ Shared interaction states apply to every interactive component unless the row sa
 | **Card** | Synth widget | Expanded and collapsed (header only); unlocked and locked. Its heading takes focus (focus ring) after the widget is added. |
 | **CardSection** | Params area of a widget | Normal; dimmed to 60 % while the widget is muted. |
 | **Heading** | Page title (level 1, hero size), widget titles (level 2, holding a DisclosureButton), dialog title (level 2) | Level 1 and level 2; focus-visible when focused programmatically. |
+| **FieldLabel** | Labels the app places itself (Harmonics, above the bars) | Static text in the style's field-label typography. |
 
 Defined but not reached by the app (the design-system pages may show them, marked as such):
 - Alert tones info and success; Badge tone neutral; Button size sm.

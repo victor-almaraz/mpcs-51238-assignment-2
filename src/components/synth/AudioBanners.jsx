@@ -1,6 +1,6 @@
 'use client';
 
-import { Alert, Button } from '@/design-systems/meta';
+import { useDesignSystem } from './design-system-context';
 import { rowInner } from './layout';
 
 /**
@@ -8,6 +8,7 @@ import { rowInner } from './layout';
  * "UI states catalogue"). Banners announced through the live regions use live={false}.
  */
 export default function AudioBanners({ ui, alerts, actions }) {
+  const { Alert, Button } = useDesignSystem();
   return (
     <div className={`${rowInner} flex flex-col gap-2 empty:hidden`}>
       {ui.audioState === 'paused' && (

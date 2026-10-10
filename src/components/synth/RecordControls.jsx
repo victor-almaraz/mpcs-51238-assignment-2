@@ -1,6 +1,6 @@
 'use client';
 
-import { Badge, ToggleButton } from '@/design-systems/meta';
+import { useDesignSystem } from './design-system-context';
 import { formatDb } from './format';
 
 /**
@@ -8,6 +8,7 @@ import { formatDb } from './format';
  * written once per animation frame by Transport through `elapsedRef`.
  */
 export default function RecordControls({ ui, available, onToggle, elapsedRef }) {
+  const { Badge, ToggleButton } = useDesignSystem();
   const recording = ui.recState === 'recording';
   const busy = ui.recState === 'saving' || ui.renderState !== 'idle';
   const reason = !available
