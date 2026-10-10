@@ -50,13 +50,13 @@ export const groups = [
       {
         number: '02',
         image: img02,
-        alt: 'A wide polyphonic synthesizer: a long row of grey sliders and a lit blue preset panel above a full keyboard, under a dark lid.',
+        alt: 'A wide polyphonic synthesizer: a long row of gray sliders and a lit blue preset panel above a full keyboard, under a dark lid.',
         citation: 'Sobczak, Chris. Moog Polymoog Synthesizer in Utrecht. Derivative work by Shoulder-synth, Wikimedia Commons, 2.0 CC BY',
       },
       {
         number: '03',
         image: img03,
-        alt: 'A black synthesizer with grey panel sections of knobs and red-lit buttons above a keyboard, the OB-X logo at the left.',
+        alt: 'A black synthesizer with gray panel sections of knobs and red-lit buttons above a keyboard, the OB-X logo at the left.',
         citation: 'CPRdave. Wikimedia Commons',
       },
       {
@@ -68,7 +68,7 @@ export const groups = [
       {
         number: '05',
         image: img05,
-        alt: 'A black synthesizer with sliders and knobs above a keyboard and a row of coloured preset buttons, between wooden end cheeks.',
+        alt: 'A black synthesizer with sliders and knobs above a keyboard and a row of colored preset buttons, between wooden end cheeks.',
         citation: 'Raymangold22. Wikimedia Commons',
       },
       {
@@ -80,7 +80,7 @@ export const groups = [
       {
         number: '07',
         image: img07,
-        alt: 'A compact synthesizer seen at an angle: a panel of knobs at the left, a keyboard, and a row of coloured tab switches along the front.',
+        alt: 'A compact synthesizer seen at an angle: a panel of knobs at the left, a keyboard, and a row of colored tab switches along the front.',
         citation: 'Wouters, Orson. Wikimedia Commons, 3.0 CC BY-SA',
       },
     ],
@@ -114,13 +114,13 @@ export const groups = [
       {
         number: '11',
         image: img11,
-        alt: 'A pale blue office typewriter with a wide carriage and black keys, on a grey backdrop.',
+        alt: 'A pale blue office typewriter with a wide carriage and black keys, on a gray backdrop.',
         citation: '"Листвица." The Typewriter Museum',
       },
       {
         number: '12',
         image: img12,
-        alt: 'A burgundy portable typewriter with cream keys, on a grey backdrop.',
+        alt: 'A burgundy portable typewriter with cream keys, on a gray backdrop.',
         citation: '"Adler Tippa S." The Typewriter Museum',
       },
       {
@@ -138,7 +138,7 @@ export const groups = [
       {
         number: '15',
         image: img15,
-        alt: 'A grey metal office typewriter with black keys.',
+        alt: 'A gray metal office typewriter with black keys.',
         citation: '"Optima M14." The Typewriter Museum',
       },
       {
@@ -150,7 +150,7 @@ export const groups = [
       {
         number: '17',
         image: img17,
-        alt: 'A grey and cream portable typewriter with green accent keys.',
+        alt: 'A gray and cream portable typewriter with green accent keys.',
         citation: '"Olympia SM7." The Typewriter Museum',
       },
     ],
@@ -173,7 +173,7 @@ export const groups = [
       {
         number: '20',
         image: img20,
-        alt: 'Illustration of a pale green control room wall lined with colourful square indicators, dials and switches.',
+        alt: 'Illustration of a pale green control room wall lined with colorful square indicators, dials and switches.',
         citation: 'CSA Images. Old Computer. Stock illustration. Getty Images',
       },
       {
@@ -185,7 +185,7 @@ export const groups = [
       {
         number: '22',
         image: img22,
-        alt: 'A grey control panel with round gauges, a chart recorder, a telephone handset and a row of toggle switches.',
+        alt: 'A gray control panel with round gauges, a chart recorder, a telephone handset and a row of toggle switches.',
         citation: 'Arctic-Images. Control Panel. Toppstodin Old Reserve Power Station, Reykjavik, Iceland. Stock photo. Getty Images',
       },
       {

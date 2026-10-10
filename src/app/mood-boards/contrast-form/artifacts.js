@@ -39,8 +39,8 @@ export const label = 'Mood board 2';
 export const title = 'Contrast / Form';
 
 export const intro = [
-  'This mood board draws primarily from early photography and from Expressionist film and early modern theater. Because of the mediums’ limitations, these influences make excellent use of contrast and form in their compositions. Though static frames and stills, some preserve a sense of motion through the soft and flowing forms. Illustrations of the era and hand-tinted frames are also included for a touch of color.',
-  'The typography is not contemporaneous with the other influences. All fonts are modern typefaces based on Art Deco typography from the 1920s and 1930s. This fits with many of the rigid and geometric forms of the included stills.',
+  'This mood board draws primarily from early photography, Expressionist film, and early modern theater. Because of the mediums’ limitations, these influences make excellent use of contrast and form in their compositions. Though static frames and stills, some preserve a sense of motion through soft and flowing forms. Illustrations of the era and hand-tinted frames are also included for a touch of color.',
+  'The typography is not contemporaneous with the other influences included in this board. All fonts are modern typefaces based on Art Deco typography from the 1920s and 1930s. This fits with many of the rigid and geometric forms of the included stills.',
 ];
 
 export const groups = [
@@ -57,7 +57,7 @@ export const groups = [
       {
         number: '02',
         image: img02,
-        alt: 'Lithograph of a dancer as a pale yellow, flame-like shape edged in pink, rising from a mottled grey ground.',
+        alt: 'Lithograph of a dancer as a pale yellow, flame-like shape edged in pink, rising from a mottled gray ground.',
         citation:
           'Toulouse-Lautrec, Henri de. Miss Loïe Fuller. 1893, The Cleveland Museum of Art. Color lithograph, image: 37.9 x 25.7 cm. Gift of Ralph King, 1925.1202',
       },
