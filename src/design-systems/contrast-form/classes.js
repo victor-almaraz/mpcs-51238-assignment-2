@@ -55,8 +55,20 @@ export const buttonVariants = {
     'border-danger bg-danger font-bold! text-accent-fg enabled:hover:border-[color-mix(in_oklch,var(--ds-danger)_80%,white)] enabled:hover:bg-[color-mix(in_oklch,var(--ds-danger)_80%,white)] enabled:active:bg-danger enabled:active:shadow-[inset_0_2px_6px_rgb(0_0_0/0.45)]',
 };
 
-/** Hard offset shadow cast by floating panels (menus, toasts). */
-export const castShadow = 'shadow-[6px_6px_0_rgb(0_0_0/0.7)]';
+/**
+ * Stepped shadow cast by floating panels (menus, toasts, dialogs): two hard offsets in the
+ * style's greys, like a ziggurat. Black would vanish on the near-black ground.
+ */
+export const castShadow = 'shadow-[4px_4px_0_var(--ds-border),8px_8px_0_var(--ds-hover)]';
+
+/**
+ * A panel with one 45° chamfered corner (top right), the Deco and Metropolis cut. The panel
+ * keeps a normal border and surface background; the clip-path cuts the corner and a hairline
+ * drawn in the corner closes the cut. Only for containers: a clip-path would also clip a
+ * focus ring.
+ */
+export const chamferPanel =
+  'border border-border-strong [background:linear-gradient(to_top_right,transparent_calc(50%_-_0.75px),var(--ds-border-strong)_calc(50%_-_0.75px)_calc(50%_+_0.75px),transparent_calc(50%_+_0.75px))_right_top/16px_16px_no-repeat,var(--ds-surface)] [clip-path:polygon(0_0,calc(100%_-_18px)_0,100%_18px,100%_100%,0_100%)]';
 
 /** Pressed / checked look: lit. */
 export const selectedLook = 'border-selected bg-selected text-selected-fg';

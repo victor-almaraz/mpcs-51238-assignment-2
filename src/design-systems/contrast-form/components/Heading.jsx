@@ -9,7 +9,8 @@ export default function Heading({ level = 2, className, ref, ...rest }) {
       className={cx(
         'font-display uppercase',
         n === 1
-          ? 'text-6xl leading-none font-black tracking-[0.04em] md:text-8xl'
+          ? // A stepped rule in the three inks under the title, like a Deco speed line.
+            "text-6xl leading-none font-black tracking-[0.04em] after:mt-4 after:block after:h-[15px] after:w-[min(18rem,60%)] after:content-[''] after:[background:var(--ds-steps)] md:text-8xl"
           : 'text-lg leading-tight font-medium tracking-[0.04em] sm:text-xl',
         'rounded-ds',
         focusRing,

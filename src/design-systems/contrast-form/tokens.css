@@ -6,6 +6,9 @@
  * A dark ground lit from one source: near-black stage, warm "limelight" white
  * for text and lit (selected) surfaces, hand-tint colours used sparingly.
  * Light is graphic: flat, hard-edged planes, never soft washes or glows.
+ * Geometry is graphic too: a chamfered corner on panels, stepped rules and shadows,
+ * a faint sunburst behind the page. Focusable controls stay square, because a
+ * clip-path would also clip their focus rings.
  *
  * Colour is set in OKLCH (lightness L, chroma C, hue H) and written as hex:
  *   Inks, a CMYK set from the serpentine-dance images: cyan (04), magenta (the
@@ -81,13 +84,22 @@
     --ds-success: var(--ds-ink-c);
     --ds-success-bg: #0f2125;
 
+    /*
+     * Geometry. Rays: a faint Art Deco sunburst fanning from above the page (Metropolis).
+     * Steps: a stepped rule in the three inks. Stair: Appia's steps, lit from above.
+     */
+    --ds-rays: repeating-conic-gradient(from 180deg at 50% -40%, rgb(239 231 217 / 0.022) 0deg 1.5deg, transparent 1.5deg 7deg);
+    --ds-steps: linear-gradient(var(--ds-ink-c), var(--ds-ink-c)) left 0 / 100% 3px no-repeat, linear-gradient(var(--ds-ink-m), var(--ds-ink-m)) left 6px / 66% 3px no-repeat, linear-gradient(var(--ds-ink-y), var(--ds-ink-y)) left 12px / 33% 3px no-repeat;
+    --ds-stair: linear-gradient(var(--ds-active), var(--ds-active)) center 0 / 34% 34% no-repeat, linear-gradient(var(--ds-hover), var(--ds-hover)) center 50% / 62% 34% no-repeat, linear-gradient(var(--ds-surface-2), var(--ds-surface-2)) center 100% / 90% 34% no-repeat;
+
     --ds-radius: 0px;
 
     --ds-font-display: var(--font-cf-display), "Arial Narrow", sans-serif;
     --ds-font-sans: var(--font-cf-sans), ui-sans-serif, system-ui, sans-serif;
     --ds-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-    background: var(--ds-bg);
+    background-color: var(--ds-bg);
+    background-image: var(--ds-rays);
     color: var(--ds-fg);
     font-family: var(--ds-font-sans);
   }
