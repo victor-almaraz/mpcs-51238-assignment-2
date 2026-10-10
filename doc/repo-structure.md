@@ -114,6 +114,7 @@ Folder layout, routes, and which modules may import which. `<style>` stands for 
 - Tokens:
   - `tokens.css` defines the style's values as CSS variables under `[data-ds="<style>"]` (e.g. `--ds-bg`, `--ds-surface`, `--ds-text`, `--ds-muted`, `--ds-border`, `--ds-accent`, `--ds-radius`).
   - `globals.css` imports all three `tokens.css` files and maps the variables to Tailwind theme names with `@theme inline` (e.g. `--color-accent: var(--ds-accent)`), giving utilities such as `bg-accent`, `text-muted`, `border-border`.
+  - Optional tokens fall back to a base token when a style leaves them out: `--ds-font-hero` (page title; falls back to the display font), and Industrial's `--ds-window`, `--ds-lamp`, `--ds-lamp-off` and `--ds-collar` (instrument windows, indicator lamps, the Panic collar).
   - Every style defines `--ds-level-low`, `--ds-level-mid` and `--ds-level-high`, the three colours of the level gradients (meter, harmonic bars, render progress); the theme maps them to `level-low`, `level-mid` and `level-high`.
   - A page selects its style by setting `data-ds="<style>"` on its root element. The showcase pages set their own style; `/synth/` sets the chosen style.
 - Components use the semantic utilities only. Raw palette classes (`neutral-*`, `indigo-*`) in `layout-and-responsive.md` and `controls-and-accessibility.md` stand for the corresponding tokens.

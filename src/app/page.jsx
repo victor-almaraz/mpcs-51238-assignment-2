@@ -52,7 +52,7 @@ export default function HomePage() {
                 href="/design-systems/industrial/"
                 className="inline-flex min-h-6 items-center underline underline-offset-4 rounded-ds hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
-                Design system 1: Industrial (draft)
+                Design system 1: Industrial
               </Link>
             </li>
             <li>
@@ -68,7 +68,7 @@ export default function HomePage() {
                 href="/design-systems/light-grain-color/"
                 className="inline-flex min-h-6 items-center underline underline-offset-4 rounded-ds hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
-                Design system 3: Light/Grain/Color (draft)
+                Design system 3: Light/Grain/Color
               </Link>
             </li>
           </ul>

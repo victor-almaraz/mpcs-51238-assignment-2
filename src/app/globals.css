@@ -74,6 +74,7 @@
 
   --font-sans: var(--ds-font-sans, ui-sans-serif, system-ui, sans-serif);
   --font-display: var(--ds-font-display, var(--ds-font-sans, ui-sans-serif, system-ui, sans-serif));
+  --font-hero: var(--ds-font-hero, var(--ds-font-display, var(--ds-font-sans, ui-sans-serif, system-ui, sans-serif)));
   --font-mono: var(--ds-font-mono, ui-monospace, monospace);
 }
 

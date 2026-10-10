@@ -7,7 +7,7 @@ import { controlType, cx, fieldLabel, lamp, lampOff, peerFocusRing, selectedLook
  * Radio group styled as segmented buttons. Native radios are visually hidden
  * but focusable; arrow keys move the selection natively.
  * From sm the legend floats so it lays out inline (w-24) with the options; below sm it sits
- * above them so tracked capitals fit. An option's `force`
+ * above them so the legends fit. An option's `force`
  * sets data-force on its input and label (design-system pages).
  */
 export default function SegmentedControl({

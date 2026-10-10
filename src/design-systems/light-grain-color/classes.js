@@ -49,9 +49,6 @@ export const bloom = 'shadow-[0_0_18px_var(--ds-glow)]';
 /** Soft shadow under floating panels (menus, toasts, dialogs). */
 export const floatShadow = 'shadow-[0_18px_48px_rgb(0_0_0/0.55)]';
 
-/** Grain over a surface colour, as background layers under the content. */
-export const grainSurface = 'bg-surface bg-[image:var(--ds-grain)]';
-
 export const buttonVariants = {
   primary:
     'border-accent bg-accent text-accent-fg shadow-[0_0_14px_var(--ds-accent-glow)] enabled:hover:border-accent-hover enabled:hover:bg-accent-hover enabled:hover:shadow-[0_0_26px_var(--ds-accent-glow)] enabled:active:bg-accent',

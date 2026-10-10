@@ -34,6 +34,9 @@
  * Grain is a background layer (alpha 0.06-0.09) under text; it does not change
  * these ratios measurably.
  *
+ * Type: Sporting Grotesque Bold for the page title, TeX Gyre Heros Condensed Bold for
+ * widget and dialog titles, TeX Gyre Heros for controls and text.
+ *
  * Inside @layer base so Tailwind utilities on the same element still win.
  */
 @layer base {
@@ -89,6 +92,7 @@
 
     --ds-radius: 10px;
 
+    --ds-font-hero: var(--font-lgc-hero), "Arial Black", sans-serif;
     --ds-font-display: var(--font-lgc-display), "Arial Narrow", sans-serif;
     --ds-font-sans: var(--font-lgc-sans), "Helvetica Neue", Arial, sans-serif;
     --ds-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;

@@ -1,7 +1,7 @@
 /* Description of the Industrial design system for its showcase page. */
 
 export const about = {
-  label: 'Design system 1 · Draft',
+  label: 'Design system 1',
   title: 'Industrial',
   moodBoard: { href: '/mood-boards/industrial/', label: 'Mood board 1: Industrial' },
   principles: [
