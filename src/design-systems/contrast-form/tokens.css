@@ -92,6 +92,9 @@
     --ds-steps: linear-gradient(var(--ds-ink-c), var(--ds-ink-c)) left 0 / 100% 3px no-repeat, linear-gradient(var(--ds-ink-m), var(--ds-ink-m)) left 6px / 66% 3px no-repeat, linear-gradient(var(--ds-ink-y), var(--ds-ink-y)) left 12px / 33% 3px no-repeat;
     --ds-stair: linear-gradient(var(--ds-active), var(--ds-active)) center 0 / 34% 34% no-repeat, linear-gradient(var(--ds-hover), var(--ds-hover)) center 50% / 62% 34% no-repeat, linear-gradient(var(--ds-surface-2), var(--ds-surface-2)) center 100% / 90% 34% no-repeat;
 
+    /* The colour behind a lit control, for its notched corner; panels set their surface. */
+    --cf-notch: var(--ds-bg);
+
     --ds-radius: 0px;
 
     --ds-font-display: var(--font-cf-display), "Arial Narrow", sans-serif;

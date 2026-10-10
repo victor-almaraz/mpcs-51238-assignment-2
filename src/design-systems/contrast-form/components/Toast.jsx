@@ -10,7 +10,7 @@ export default function Toast({ children, action, details, onDismiss, className,
   return (
     <div
       className={cx(
-        'pointer-events-auto flex max-w-full flex-col gap-1 rounded-ds border border-border-strong border-l-4 border-l-fg bg-surface-2 py-1 pr-1 pl-4 text-sm text-fg',
+        'pointer-events-auto flex max-w-full flex-col gap-1 rounded-ds border border-border-strong border-l-4 border-l-fg bg-surface-2 py-1 pr-1 pl-4 text-sm text-fg [--cf-notch:var(--ds-surface-2)]',
         castShadow,
         className,
       )}

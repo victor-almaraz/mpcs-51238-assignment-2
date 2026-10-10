@@ -67,7 +67,7 @@ export default function Dialog({
       ref={dialogRef}
       aria-labelledby={titleId}
       className={cx(
-        'm-auto w-[min(28rem,calc(100%_-_2rem))] max-w-none rounded-ds border border-border-strong bg-surface p-5 text-sm text-fg',
+        'm-auto w-[min(28rem,calc(100%_-_2rem))] max-w-none rounded-ds border border-border-strong bg-surface p-5 text-sm text-fg [--cf-notch:var(--ds-surface)]',
         'shadow-[4px_4px_0_var(--ds-border),8px_8px_0_var(--ds-hover)] backdrop:bg-[rgb(0_0_0/0.75)]',
         className,
       )}
