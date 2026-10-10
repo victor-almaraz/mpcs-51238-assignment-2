@@ -60,7 +60,7 @@ export default function HomePage() {
                 href="/design-systems/contrast-form/"
                 className="inline-flex min-h-6 items-center underline underline-offset-4 rounded-ds hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
-                Design system 2: Contrast/Form (draft)
+                Design system 2: Contrast/Form
               </Link>
             </li>
             <li>

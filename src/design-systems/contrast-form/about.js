@@ -1,7 +1,7 @@
 /* Description of the Contrast/Form design system for its showcase page. */
 
 export const about = {
-  label: 'Design system 2 · Draft',
+  label: 'Design system 2',
   title: 'Contrast / Form',
   moodBoard: { href: '/mood-boards/contrast-form/', label: 'Mood board 2: Contrast/Form' },
   principles: [
