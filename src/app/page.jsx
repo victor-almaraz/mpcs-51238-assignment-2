@@ -11,7 +11,10 @@ export const metadata = {
 const linkClass =
   'inline-flex min-h-6 items-center text-sm underline underline-offset-4 rounded-ds hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus';
 
-/** The hub: the rack, then the three style directions, then the test pages. */
+/** The test pages are routes under `next dev` only (next.config.mjs). */
+const SHOW_TESTS = process.env.NODE_ENV === 'development';
+
+/** The hub: the rack and its guide, then the three style directions, then (in development) the test pages. */
 export default function HomePage() {
   const rackStyle = DIRECTIONS.find((d) => d.style === STYLE);
   return (
@@ -31,8 +34,7 @@ export default function HomePage() {
             </h2>
             <p>
               A synthesizer rack that runs entirely in the browser: subtractive, FM, additive, pluck and granular
-              synths, played from a MIDI file, a MIDI device or the computer keyboard, with output limiting and a
-              Panic button that always stops the sound.
+              synths, played from a MIDI file, a MIDI device or the computer keyboard.
             </p>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <Link
@@ -42,6 +44,9 @@ export default function HomePage() {
                 Open the rack <span aria-hidden="true">→</span>
               </Link>
               {rackStyle ? <span className="text-sm text-muted">In the {rackStyle.title} design system</span> : null}
+              <Link href="/guide/" className={linkClass}>
+                How to use the rack
+              </Link>
             </div>
           </section>
 
@@ -62,25 +67,27 @@ export default function HomePage() {
             </div>
           </section>
 
-          <section aria-labelledby="tests" className="flex flex-col gap-3">
-            <Heading level={2} id="tests" className="border-b border-border pb-2">
-              Test pages
-            </Heading>
-            <ul className="flex flex-col gap-2">
-              <li>
-                <Link href="/dev/safety/" className={linkClass}>
-                  Audio safety acceptance tests
-                </Link>{' '}
-                <span className="text-sm text-muted">— offline renders through the output chain at worst-case levels</span>
-              </li>
-              <li>
-                <Link href="/dev/core/" className={linkClass}>
-                  Audio-core functional tests
-                </Link>{' '}
-                <span className="text-sm text-muted">— every synth, envelope, voice cap and the song render</span>
-              </li>
-            </ul>
-          </section>
+          {SHOW_TESTS && (
+            <section aria-labelledby="tests" className="flex flex-col gap-3">
+              <Heading level={2} id="tests" className="border-b border-border pb-2">
+                Test pages
+              </Heading>
+              <ul className="flex flex-col gap-2">
+                <li>
+                  <Link href="/dev/safety/" className={linkClass}>
+                    Audio safety acceptance tests
+                  </Link>{' '}
+                  <span className="text-sm text-muted">— offline renders through the output chain at worst-case levels</span>
+                </li>
+                <li>
+                  <Link href="/dev/core/" className={linkClass}>
+                    Audio-core functional tests
+                  </Link>{' '}
+                  <span className="text-sm text-muted">— every synth, envelope, voice cap and the song render</span>
+                </li>
+              </ul>
+            </section>
+          )}
         </div>
       </main>
     </div>

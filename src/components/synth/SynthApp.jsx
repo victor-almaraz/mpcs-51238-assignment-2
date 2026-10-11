@@ -24,6 +24,9 @@ import WidgetCard from './widgets/WidgetCard';
 import { formatClock } from './format';
 import { rackPanel, rowInner, rowPad } from './layout';
 
+const headerLink =
+  'inline-flex min-h-6 items-center text-sm underline underline-offset-2 hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus';
+
 const INITIAL_UI = {
   audioState: 'idle',          // idle | starting | running | paused | failed | error
   reducedSafety: false,
@@ -360,9 +363,14 @@ export default function SynthApp() {
         <header className={`border-b border-border ${rowPad} py-6 md:py-10`}>
           <div className={`${rowInner} flex flex-wrap items-end justify-between gap-x-6 gap-y-2`}>
             <Heading level={1}>Synthesizer Rack</Heading>
-            <Link href="/" className="text-sm underline underline-offset-2 hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
-              Back to Hub
-            </Link>
+            <nav aria-label="Site" className="flex gap-x-4">
+              <Link href="/guide/" className={headerLink}>
+                Guide
+              </Link>
+              <Link href="/" className={headerLink}>
+                Back to Hub
+              </Link>
+            </nav>
           </div>
         </header>
 

@@ -4,10 +4,11 @@ import { useDesignSystem } from './design-system-context';
 import { formatClock } from './format';
 
 /**
- * The ✕ that unloads the file (before the name, at the row's start, where it is easy to reach),
- * the song name, Play/Stop, position, Render to WAV and render
- * progress. Shown only once a MIDI file is loaded or being read. The position text is written
- * per animation frame by Transport through `posRef`. Unloading is disabled while rendering.
+ * Play/Stop, position, Render to WAV and render progress at the row's start, so they keep their
+ * place whatever the file name; then the name, which takes the remaining width and truncates;
+ * then the ✕ that unloads the file, at the row's end. Name and ✕ wrap together. Shown only
+ * once a MIDI file is loaded or being read. The position text is written per animation frame
+ * by Transport through `posRef`. Unloading is disabled while rendering.
  */
 export default function SongControls({ ui, song, songName, readingMidi, posRef, actions }) {
   const { Button, IconButton, ProgressBar, TextOutput } = useDesignSystem();
@@ -15,20 +16,6 @@ export default function SongControls({ ui, song, songName, readingMidi, posRef, 
   const recording = ui.recState !== 'idle';
   return (
     <div role="group" aria-label="MIDI song" className="flex min-w-0 flex-wrap items-center gap-2">
-      {song && !readingMidi && (
-        <IconButton
-          label={`Unload ${songName}`}
-          onClick={actions.unloadMidi}
-          disabled={rendering}
-          title={rendering ? 'Cancel the render to unload the file' : undefined}
-          className="-mr-1"
-        >
-          ✕
-        </IconButton>
-      )}
-      <span className="max-w-48 truncate text-sm font-semibold" title={songName ?? undefined}>
-        {readingMidi ? 'Reading MIDI file…' : songName}
-      </span>
       <Button size="lg" onClick={actions.playToggle} disabled={!song}>
         {ui.playing ? (
           <>
@@ -67,6 +54,22 @@ export default function SongControls({ ui, song, songName, readingMidi, posRef, 
           <Button onClick={actions.cancelRender}>Cancel</Button>
         </span>
       )}
+      <span className="flex min-w-0 flex-[1_1_10rem] items-center gap-2">
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold" title={songName ?? undefined}>
+          {readingMidi ? 'Reading MIDI file…' : songName}
+        </span>
+        {song && !readingMidi && (
+          <IconButton
+            label={`Unload ${songName}`}
+            onClick={actions.unloadMidi}
+            disabled={rendering}
+            title={rendering ? 'Cancel the render to unload the file' : undefined}
+            className="shrink-0"
+          >
+            ✕
+          </IconButton>
+        )}
+      </span>
     </div>
   );
 }

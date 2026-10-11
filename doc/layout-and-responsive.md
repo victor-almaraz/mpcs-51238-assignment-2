@@ -4,11 +4,11 @@
 Page structure, the rack grid, widget anatomy and responsive behaviour at 390 px and 1440 px, using Tailwind only. Control states are in `controls-and-accessibility.md`.
 
 ## Page regions (in DOM and visual order)
-1. **Header (hero):** page title "Synthesizer Rack" (the only H1) and a link back to the hub.
+1. **Header (hero):** page title "Synthesizer Rack" (the only H1), and links to the guide and back to the hub (`nav aria-label="Site"`).
 2. **Transport band:** all meta controls in one section with a bottom border, which separates them from the rack.
    - **Master** (always shown): Record toggle and recording indicator (`recording.md`), master volume, meter, Limit badge, Panic / Reset (`audio-safety.md`).
-   - **Song** (shown only once a MIDI file is loaded or being read): an ✕ that unloads the file (before the name, at the row's start), file name, Play/Stop toggle, position `0:42 / 3:10`, Render to WAV and render progress.
-   - **File menu** (always shown, at the end of the first row; see "File menu").
+   - **File menu** (always shown, at the right end of the first row; see "File menu").
+   - **Song** (shown only once a MIDI file is loaded or being read): Play/Stop toggle, position `0:42 / 3:10`, Render to WAV and render progress at the row's start, so they keep their place whatever the file name; then the file name, which takes the remaining width and truncates (full name in `title`); then an ✕ that unloads the file, at the row's right end. The name and the ✕ wrap together.
    - **Live input** (last row): Play with Keyboard, octave, Connect MIDI Device, device status (`live-input.md`).
 3. **Banners** (only when needed): ongoing audio states and errors.
 4. **Rack:** the **Add Synth** button (primary, the only accent-coloured control), then the widget grid. It starts 24 px below the transport band.
@@ -93,7 +93,7 @@ Page structure, the rack grid, widget anatomy and responsive behaviour at 390 px
 ## Transport placement
 - Mobile (390 px):
   - The Master group forms a **sticky bottom bar** in two rows: `fixed inset-x-0 bottom-0 border-t bg-white pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]`. Row 1: Record, Panic. Row 2: master volume, meter, Limit badge.
-  - The Song group and the File menu are not sticky; they share a row under the header, with the File menu at its right end. The live-input row follows, and the band's bottom border closes the group.
+  - The File menu and the Song group are not sticky. The File menu sits at the right end of the first row under the header; the Song group takes the full-width rows below it, so its ✕ lines up under the File menu. The live-input row follows, and the band's bottom border closes the group.
   - `<main>` has `pb-32` so the last widget is not hidden behind the bar.
   - The viewport metadata sets `viewport-fit=cover`; `env()` insets require it.
 - Desktop (1440 px): both groups sit in one `sticky top-0` bar under the header, Master first so it does not move when the Song group appears. The File menu is pushed to the right end of the first row. The Song group, when a song is loaded, takes its own full-width row below, flush with the rows around it (Master, Song and the menu need about 1,360 px in one row; the bar's content is at most 1,216 px). The live-input row is the bar's last row (`basis-full`), so it stays reachable while scrolling the rack.
@@ -108,7 +108,7 @@ Page structure, the rack grid, widget anatomy and responsive behaviour at 390 px
 - Choosing a type adds the widget, closes the menu and moves focus (see Grid).
 
 ## File menu
-- A secondary button "File", the last item of the transport bar, following the APG menu-button pattern. Its dropdown is anchored to the right edge of the button at every breakpoint.
+- A secondary button "File", at the right end of the transport's first row, following the APG menu-button pattern. Its dropdown is anchored to the right edge of the button at every breakpoint.
 - Items, in order:
   - "Load MIDI File…" and "Load Patch…", which open visually hidden `<input type="file">` elements. Those inputs are out of the tab order and the accessibility tree.
   - "Save Patch", disabled with "Unavailable: add a synth first" when the rack is empty.

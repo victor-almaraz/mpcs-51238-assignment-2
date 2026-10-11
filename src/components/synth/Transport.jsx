@@ -95,18 +95,19 @@ export default function Transport({ session, ui, song, songName, readingMidi, fi
           </div>
           <MasterSection ui={ui} onMaster={actions.master} onPanic={actions.panic} onUnmute={actions.unmute} meterRef={meterRef} limitRef={limitRef} />
         </div>
-        {/* Mobile: Song and the menu share the in-flow row under the header. lg: `contents`
-            makes both direct items of the bar: the menu is pushed to the right end of the first
-            row (after Master), and Song takes its own full-width row below, flush with the rows
-            around it. Master, Song and the menu need about 1,360 px in one row, wider than the
-            bar's 1,216 px content, so Song never shares the first row. */}
-        <div className="flex items-start gap-2 pt-3 lg:contents">
+        {/* Mobile: the menu sits at the right end of the first in-flow row under the header, and
+            Song takes the full-width rows below it, so the Song row's ✕ lines up under the menu.
+            lg: `contents` makes both direct items of the bar: the menu is pushed to the right end
+            of the first row (after Master), and Song takes its own full-width row below, flush
+            with the rows around it. Master, Song and the menu need about 1,360 px in one row,
+            wider than the bar's 1,216 px content, so Song never shares the first row. */}
+        <div className="flex flex-wrap items-start gap-2 pt-3 lg:contents">
+          <div className="ml-auto shrink-0 lg:order-2">{fileMenu}</div>
           {(song || readingMidi) && (
-            <div className="min-w-0 flex-1 lg:order-3 lg:basis-full">
+            <div className="min-w-0 basis-full lg:order-3">
               <SongControls ui={ui} song={song} songName={songName} readingMidi={readingMidi} posRef={posRef} actions={actions} />
             </div>
           )}
-          <div className="ml-auto shrink-0 lg:order-2">{fileMenu}</div>
         </div>
         <div className="empty:hidden lg:order-4 lg:basis-full">
           <LiveInputControls ui={ui} actions={actions} />

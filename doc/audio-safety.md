@@ -346,7 +346,7 @@ Controls are specified in `controls-and-accessibility.md`; placement in `layout-
 - No safety indicator uses the accent colour.
 
 ## Acceptance criteria
-Offline renders (`OfflineAudioContext`, 44.1 and 48 kHz, stereo) through the real `buildMasterBus` chain, 4 s each. The suite runs on the development page `/dev/safety/` (`src/components/dev/safety-cases.js`).
+Offline renders (`OfflineAudioContext`, 44.1 and 48 kHz, stereo) through the real `buildMasterBus` chain, 4 s each. The suite runs on the test page `/dev/safety/` (`src/components/dev/safety-cases.js`), which `next dev` serves and the deployment build leaves out (`repo-structure.md`, "Routes").
 
 ### Levels
 Each case runs at two levels:

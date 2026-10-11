@@ -85,6 +85,7 @@ Folder layout, routes, and which modules may import which. `<style>` stands for 
     ├── state/
     │   └── rack.ts                        # rack state (widgets, part, mute/solo, armed) + reducer
     └── components/
+        ├── guide/                         # parts of the guide page that read app modules
         ├── hub/                           # hub page sections
         ├── mood-board/                    # shared grid/artifact components used by all three boards
         └── synth/                         # SynthApp, Transport, RackToolbar, AddSynthMenu,
@@ -99,7 +100,11 @@ Folder layout, routes, and which modules may import which. `<style>` stands for 
 | `/mood-boards/<style>/` | `src/app/mood-boards/<style>/page.tsx` |
 | `/design-systems/<style>/` | `src/app/design-systems/<style>/page.tsx` |
 | `/synth/` | `src/app/synth/page.tsx` |
+| `/guide/` | `src/app/guide/page.jsx` |
+| `/dev/safety/`, `/dev/core/` | `src/app/dev/<suite>/page.dev.jsx` (development only) |
 
+- `/guide/` explains how to operate the rack, including the master volume, Panic and the audio messages. It uses the meta style, like the hub, and the hub and the rack header link to it.
+- Test pages are named `page.dev.jsx`. `next.config.mjs` adds `dev.jsx` to `pageExtensions` only under `next dev`, so `next build` leaves them out of the export. The hub links to them only in development.
 - Each style has its own static route folder. No dynamic `[style]` segment.
 - `next build` writes the export to `out/` (git-ignored).
 
@@ -145,6 +150,7 @@ Folder layout, routes, and which modules may import which. `<style>` stands for 
 | `state/` | `audio/`, `midi/`, `playback/`, `live/`, `patch/` | `components/`, `design-systems/` |
 | `design-systems/<style>/` | React, its own files | `audio/`, `midi/`, `playback/`, `live/`, `patch/`, `state/`, other styles |
 | `components/synth/` | everything above, one style's `design-systems/` | — |
+| `components/guide/` | `audio/synths/param-defs.js`, `design-systems/meta/` | other `audio/` modules, `state/` |
 | `app/` | `components/`, `design-systems/` | `audio/` directly |
 
 - `audio/` modules take a `BaseAudioContext` argument instead of reading a global, so offline render can pass an `OfflineAudioContext` (`recording.md`).
