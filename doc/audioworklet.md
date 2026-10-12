@@ -20,7 +20,7 @@ AudioWorklet processors: file layout, loading in a static Next.js export, real-t
 - Next.js bundlers (Turbopack/webpack) do not emit worklet modules cleanly, so processors live **outside the bundle** in `public/worklets/`, served at `/worklets/<name>.js`. `output: 'export'` copies them into `out/`.
 - Modules are loaded once per context, `AudioContext` and `OfflineAudioContext` alike. `safety-limiter` loads first; no widget connects to the master bus until it is ready (`audio-safety.md`).
 ```ts
-// src/audio/worklet-loader.ts
+// src/audio/worklet-loader.js
 const MODULES = ['safety-limiter', 'ks-processor', 'recorder'] as const;
 const VERSION = 1;
 const loaded = new WeakMap<BaseAudioContext, Promise<void>>();
@@ -45,13 +45,9 @@ export function loadWorklets(ctx: BaseAudioContext): Promise<void> {
   - `recorder` fails: Record is disabled with the reason; offline render is unaffected.
 - The Pluck widget shows "Loading pluck engine…" until loading resolves.
 
-## TypeScript
-- The processor file is **plain JS**. ES module syntax is allowed; the file has no imports.
-- Type checking is optional:
-  - `// @ts-check` plus JSDoc enables it.
-  - `AudioWorkletProcessor` and `registerProcessor` types are not in `lib.dom`; minimal ambient types go in a `worklet-globals.d.ts` scoped to that folder.
+## Module format
+- Processor files are plain JavaScript. ES module syntax is allowed; the files have no imports.
 - Processor files are not under `src/`, where Next would compile them (`repo-structure.md`).
-- The main-thread side needs no extra types; `AudioWorkletNode` is in `lib.dom.d.ts`.
 
 ## Pluck processor structure
 ```js

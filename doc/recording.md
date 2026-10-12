@@ -5,7 +5,7 @@ Two capture modes that produce stereo WAV downloads at the context sample rate:
 - **Live recording:** an AudioWorklet sink on the safety-limiter output captures everything audible, including live input.
 - **Offline render:** the loaded MIDI song is rendered through the same engine in an `OfflineAudioContext`.
 
-Both share one encoder (`wav.ts`) and one download helper (`download.ts`). The output chain is in `audio-safety.md`; worklet loading in `audioworklet.md`.
+Both share one encoder (`wav.js`) and one download helper (`download.js`). The output chain is in `audio-safety.md`; worklet loading in `audioworklet.md`.
 
 | Item | Live recording | Offline render |
 |---|---|---|
@@ -25,10 +25,10 @@ Recordings are never written to `localStorage`, IndexedDB or a server. The Blob 
 | Path | Contents |
 |---|---|
 | `public/worklets/recorder.js` | Recorder processor (plain JS) |
-| `src/audio/recording/recorder.ts` | `LiveRecorder`: node wiring, buffer pool, chunk store |
-| `src/audio/recording/wav.ts` | Header writer, body encoder, TPDF dither |
-| `src/audio/recording/offline-render.ts` | `renderSongToWav()` |
-| `src/audio/recording/download.ts` | `downloadBlob()`, `wavFilename()` |
+| `src/audio/recording/recorder.js` | `LiveRecorder`: node wiring, buffer pool, chunk store |
+| `src/audio/recording/wav.js` | Header writer, body encoder, TPDF dither |
+| `src/audio/recording/offline-render.js` | `renderSongToWav()` |
+| `src/audio/recording/download.js` | `downloadBlob()`, `wavFilename()` |
 
 ## Live recording
 
@@ -205,7 +205,7 @@ registerProcessor('recorder', RecorderProcessor);
 - `discontinuities` counts blocks whose `currentFrame` does not follow the previous block's end. It is diagnostic only.
 - Pool exhaustion is reported as `dropped > 0` and produces zero-filled gaps.
 
-### Main thread (`src/audio/recording/recorder.ts`)
+### Main thread (`src/audio/recording/recorder.js`)
 ```ts
 export const RECORD_MAX_SECONDS = 600;   // (project limit)
 export const CHUNK_FRAMES = 8192;        // (project limit)
@@ -324,7 +324,7 @@ Listen with `ctx.addEventListener('statechange', …)`; any state other than `ru
 - A failed allocation throws `RangeError`, which maps to the out-of-memory state.
 - The RIFF 32-bit size limit (4 GiB) is not reached at the 10-minute cap.
 
-## WAV encoding (`src/audio/recording/wav.ts`)
+## WAV encoding (`src/audio/recording/wav.js`)
 All multi-byte fields are little-endian; written with `DataView` and `littleEndian = true`.
 
 ### 16-bit PCM (44-byte header, `WAVE_FORMAT_PCM = 1`)
@@ -426,12 +426,12 @@ export function takeToWavBlob(
   return new Blob(parts, { type: 'audio/wav' });
 }
 ```
-- `mulberry32` comes from `src/audio/random.ts`.
+- `mulberry32` comes from `src/audio/random.js`.
 - Scale is `× 32767` (symmetric); −32768 occurs only through dither at negative full scale.
 - Dither is TPDF (difference of two uniform values, ±1 LSB peak), on by default for 16-bit, never applied to float, and seeded so offline renders are reproducible.
 - No resampling: `nSamplesPerSec` is always the producing context's sample rate.
 
-## Download (`src/audio/recording/download.ts`)
+## Download (`src/audio/recording/download.js`)
 ```ts
 export const REVOKE_DELAY_MS = 30_000;   // (project limit)
 
@@ -460,7 +460,7 @@ export function wavFilename(kind: 'live' | 'render', sampleRate: number, format:
 - The success state keeps the `Blob` (not the URL) for "Download Again"; each click creates and later revokes a new object URL.
 - A programmatic `a.click()` after a long asynchronous encode may be blocked outside transient user activation in some browsers; the "Download Again" button covers that case.
 
-## Offline render (`src/audio/recording/offline-render.ts`)
+## Offline render (`src/audio/recording/offline-render.js`)
 
 ### Engine requirements
 - `buildEngine(ctx: BaseAudioContext, seed)` builds the current patch and the safety chain. No module uses `AudioContext`-only members (`outputLatency`, `resume()`, `createMediaStreamSource`).

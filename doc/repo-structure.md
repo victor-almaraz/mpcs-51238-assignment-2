@@ -1,105 +1,122 @@
 # Repo structure
 
 ## Scope
-Folder layout, routes, and which modules may import which. `<style>` stands for each of the three style slugs (kebab-case, e.g. `calm`); every `<style>` folder exists three times, once per style.
+Folder layout, routes, and which modules may import which. `<style>` stands for each of the three style slugs: `industrial`, `contrast-form` and `light-grain-color`. Every `<style>` folder exists once per style. The meta style (`src/design-systems/meta/`) styles the hub, guide, mood-board and design-system pages.
 
 ## Tree
 ```
 .
 ├── AGENTS.md
-├── docs/                                  # agent reference docs
-├── next.config.ts                         # output: 'export', trailingSlash: true, images.unoptimized: true
-├── package.json
+├── README.md
+├── doc/                                   # reference docs
+├── jsconfig.json                          # paths: { "@/*": ["./src/*"] }
+├── next.config.mjs                        # output: 'export', trailingSlash, images.unoptimized, pageExtensions
+├── package.json                           # scripts: dev, build, test
 ├── pnpm-lock.yaml
 ├── postcss.config.mjs                     # @tailwindcss/postcss
-├── tsconfig.json                          # paths: { "@/*": ["./src/*"] }
 ├── public/
 │   └── worklets/                          # plain JS, outside the bundle (audioworklet.md)
 │       ├── safety-limiter.js
 │       ├── ks-processor.js
 │       └── recorder.js
+├── tests/                                 # node:test unit tests (pnpm test), fakes and MIDI fixtures
 └── src/
     ├── app/                               # routes only
-    │   ├── layout.tsx                     # root layout, fonts, globals.css
-    │   ├── globals.css                    # @import "tailwindcss"; @theme inline token mapping
-    │   ├── page.tsx                       # /            hub
+    │   ├── layout.jsx                     # root layout, metadata, viewport, globals.css
+    │   ├── globals.css                    # @import "tailwindcss"; the four tokens.css files; @theme inline mapping
+    │   ├── page.jsx                       # /            hub
+    │   ├── guide/
+    │   │   └── page.jsx                   # /guide/      how to operate the rack
     │   ├── mood-boards/
     │   │   └── <style>/
-    │   │       ├── page.tsx               # /mood-boards/<style>/
-    │   │       ├── artifacts.ts           # ordered list of the 25–30 artifacts
+    │   │       ├── page.jsx               # /mood-boards/<style>/
+    │   │       ├── artifacts.js           # label, title, intro and the ordered artifact groups
     │   │       └── images/                # artifact image files, statically imported
     │   ├── design-systems/
     │   │   └── <style>/
-    │   │       └── page.tsx               # /design-systems/<style>/  showcase of src/design-systems/<style>
-    │   └── synth/
-    │       └── page.tsx                   # /synth/      renders <SynthApp /> (client)
+    │   │       └── page.jsx               # /design-systems/<style>/  showcase of src/design-systems/<style>
+    │   ├── synth/
+    │   │   └── page.jsx                   # /synth/      renders <SynthApp /> (client)
+    │   └── dev/
+    │       └── <suite>/
+    │           └── page.dev.jsx           # /dev/safety/, /dev/core/  test pages, next dev only
     ├── design-systems/
+    │   ├── meta/                          # tokens.css, classes.js, index.js, components/ (system fonts)
     │   └── <style>/
     │       ├── tokens.css                 # CSS variables scoped to [data-ds="<style>"]
-    │       ├── fonts.ts                   # next/font definitions for this style
-    │       ├── index.ts                   # public exports
-    │       └── components/                # Button, Chip, Card, Slider, Select, Radio, Toggle,
-    │                                      # Tabs, ListRow, Badge, Dialog, Alert, EmptyState, Meter, ...
+    │       ├── classes.js                 # shared class strings for the components
+    │       ├── fonts.js                   # next/font/local definitions; exports fontClassName
+    │       ├── fonts/                     # font files, their licences and a README of sources
+    │       ├── about.js                   # principles and font credits for the showcase
+    │       ├── index.js                   # public exports
+    │       └── components/                # Alert, Badge, Button, Card, CardSection, Chip, Dialog,
+    │                                      # Disclosure, DisclosureButton, EmptyState, FieldLabel,
+    │                                      # FileButton, Heading, IconButton, MenuButton, Meter,
+    │                                      # ProgressBar, SegmentedControl, Select, Slider, SliderGroup,
+    │                                      # TextOutput, Toast, ToggleButton, ValueField, VisuallyHidden
     ├── audio/                             # audio core: Web Audio only, no React
-    │   ├── context.ts                     # ensureRunning(), audioSession, statechange
-    │   ├── master-bus.ts                  # mixBus, masterGain, safety stage, meter taps (audio-safety.md)
-    │   ├── engine.ts                      # buildEngine(ctx: BaseAudioContext, seed)
-    │   ├── instrument.ts                  # Instrument interface, voice tagging ('file' | 'live')
-    │   ├── voices.ts                      # allocation, stealing, caps, polyGain
-    │   ├── envelope.ts                    # holdAt(), envValueAt(), release helpers
-    │   ├── smoothing.ts
-    │   ├── random.ts                      # mulberry32 seeded PRNG
-    │   ├── worklet-loader.ts              # loadWorklets(ctx)
+    │   ├── context.js                     # ensureRunning(), audioSession, statechange
+    │   ├── master-bus.js                  # mixBus, masterGain, safety stage, meter taps (audio-safety.md)
+    │   ├── engine.js                      # buildEngine(ctx, seed)
+    │   ├── instrument.js                  # instrument contract, voice tagging ('file' | 'live')
+    │   ├── voices.js                      # allocation, stealing, caps, polyGain
+    │   ├── envelope.js                    # holdAt(), envValueAt(), release helpers
+    │   ├── smoothing.js
+    │   ├── random.js                      # mulberry32 seeded PRNG
+    │   ├── sample.js                      # user samples for the granular source
+    │   ├── worklet-loader.js              # loadWorklets(ctx)
     │   ├── synths/
-    │   │   ├── param-defs.ts              # PARAM_DEFS, the single source for ranges
-    │   │   ├── scaling.ts                 # lin / log / pow3 mapping
-    │   │   ├── subtractive.ts
-    │   │   ├── fm.ts
-    │   │   ├── additive.ts
-    │   │   ├── pluck.ts                   # main-thread side of ks-processor
-    │   │   └── granular.ts
+    │   │   ├── param-defs.js              # PARAM_DEFS, the single source for ranges; SYNTH_INFO
+    │   │   ├── scaling.js                 # lin / log / pow3 mapping
+    │   │   ├── subtractive.js
+    │   │   ├── fm.js
+    │   │   ├── additive.js
+    │   │   ├── pluck.js                   # main-thread side of ks-processor
+    │   │   └── granular.js
     │   └── recording/
-    │       ├── recorder.ts                # LiveRecorder
-    │       ├── wav.ts                     # header writer, body encoder, TPDF dither
-    │       ├── offline-render.ts          # renderSongToWav()
-    │       └── download.ts                # downloadBlob(), wavFilename()
-    ├── midi/                              # SMF parsing: pure TS, no DOM
-    │   ├── types.ts                       # Note, TrackInfo, PartInfo, Song
-    │   ├── reader.ts                      # bounds-checked byte reader, readVLQ
-    │   ├── parse.ts                       # parseMidi(buffer): Song
-    │   ├── rmid.ts
-    │   ├── tempo-map.ts
-    │   └── parts.ts                       # part keys and labels
+    │       ├── recorder.js                # LiveRecorder
+    │       ├── wav.js                     # header writer, body encoder, TPDF dither
+    │       ├── offline-render.js          # renderSongToWav()
+    │       └── download.js                # downloadBlob(), wavFilename()
+    ├── midi/                              # SMF parsing: plain JS, no DOM
+    │   ├── types.js                       # Note, TrackInfo, PartInfo, Song (JSDoc only)
+    │   ├── reader.js                      # bounds-checked byte reader, readVLQ
+    │   ├── parse.js                       # parseMidi(buffer): Song
+    │   ├── rmid.js
+    │   ├── tempo-map.js
+    │   └── parts.js                       # part keys and labels
     ├── playback/
-    │   ├── scheduler.ts                   # lookahead loop, offline scheduleRange, transport, releaseAll
-    │   └── routing.ts                     # partKey, isAudible, dispatch
+    │   ├── scheduler.js                   # lookahead loop, offline scheduleRange, transport, releaseAll
+    │   └── routing.js                     # partKey, isAudible, dispatch
     ├── live/
-    │   ├── input.ts                       # live note layer: liveOn/liveOff, sustain, liveAllOff
-    │   ├── web-midi.ts
-    │   └── keyboard.ts                    # key map, octave
+    │   ├── input.js                       # live note layer: liveOn/liveOff, sustain, liveAllOff
+    │   ├── web-midi.js
+    │   └── keyboard.js                    # key map, octave
     ├── patch/
-    │   ├── schema.ts                      # types, CURRENT_VERSION
-    │   ├── validate.ts                    # parsePatch, coerce, resolvePart
-    │   ├── migrate.ts
-    │   └── file-io.ts                     # savePatch, readFile
+    │   ├── schema.js                      # CURRENT_VERSION, MAX_WIDGETS
+    │   ├── validate.js                    # parsePatch, coerce, resolvePart
+    │   ├── migrate.js
+    │   └── file-io.js                     # savePatch, readPatchFile
     ├── state/
-    │   └── rack.ts                        # rack state (widgets, part, mute/solo, armed) + reducer
+    │   ├── rack.js                        # rack state (widgets, part, mute/solo, armed) + reducer
+    │   └── session.js                     # the audio session behind the synth UI
     └── components/
+        ├── design-system/                 # Showcase and its sections; one client binding per style
+        ├── dev/                           # test-page suites (safety-cases.js, core-cases.js)
         ├── guide/                         # parts of the guide page that read app modules
         ├── hub/                           # hub page sections
         ├── mood-board/                    # shared grid/artifact components used by all three boards
-        └── synth/                         # SynthApp, Transport, RackToolbar, AddSynthMenu,
-            │                              # MasterSection, RecordControls
+        └── synth/                         # SynthApp, Transport, SongControls, MasterSection, FileMenu, …
             └── widgets/                   # WidgetCard, HarmonicBars, one params panel per synth type
 ```
 
 ## Routes
 | Path | Source |
 |---|---|
-| `/` | `src/app/page.tsx` |
-| `/mood-boards/<style>/` | `src/app/mood-boards/<style>/page.tsx` |
-| `/design-systems/<style>/` | `src/app/design-systems/<style>/page.tsx` |
-| `/synth/` | `src/app/synth/page.tsx` |
+| `/` | `src/app/page.jsx` |
+| `/mood-boards/<style>/` | `src/app/mood-boards/<style>/page.jsx` |
+| `/design-systems/<style>/` | `src/app/design-systems/<style>/page.jsx` |
+| `/synth/` | `src/app/synth/page.jsx` |
 | `/guide/` | `src/app/guide/page.jsx` |
 | `/dev/safety/`, `/dev/core/` | `src/app/dev/<suite>/page.dev.jsx` (development only) |
 
@@ -109,16 +126,16 @@ Folder layout, routes, and which modules may import which. `<style>` stands for 
 - `next build` writes the export to `out/` (git-ignored).
 
 ## Mood boards
-- A mood board's folder contains everything specific to it: `page.tsx`, `artifacts.ts` and `images/`.
+- A mood board's folder contains everything specific to it: `page.jsx`, `artifacts.js` and `images/`.
 - Images are statically imported (`import img from './images/01.jpg'`) and rendered with `next/image`. Static export is incompatible with the default image loader; it requires `images.unoptimized: true` or a custom loader. This project uses `unoptimized`.
-- Generated artifacts that are not images (colour swatches, type specimens, UI fragments) are defined in `artifacts.ts` and rendered by `src/components/mood-board/`.
+- Generated artifacts that are not images (colour swatches, type specimens, UI fragments) are defined in `artifacts.js` and rendered by `src/components/mood-board/`.
 - Shared layout components live in `src/components/mood-board/`. Nothing style-specific lives there.
 
 ## Design systems
-- Each library lives in `src/design-systems/<style>/`. The route `src/app/design-systems/<style>/page.tsx` imports from it to render the showcase. The route folder contains no components.
+- Each library lives in `src/design-systems/<style>/`. The route `src/app/design-systems/<style>/page.jsx` imports from it to render the showcase. The route folder contains no components.
 - Tokens:
   - `tokens.css` defines the style's values as CSS variables under `[data-ds="<style>"]` (e.g. `--ds-bg`, `--ds-surface`, `--ds-text`, `--ds-muted`, `--ds-border`, `--ds-accent`, `--ds-radius`).
-  - `globals.css` imports all three `tokens.css` files and maps the variables to Tailwind theme names with `@theme inline` (e.g. `--color-accent: var(--ds-accent)`), giving utilities such as `bg-accent`, `text-muted`, `border-border`.
+  - `globals.css` imports the four `tokens.css` files (meta and the three styles) and maps the variables to Tailwind theme names with `@theme inline` (e.g. `--color-accent: var(--ds-accent)`), giving utilities such as `bg-accent`, `text-muted`, `border-border`.
   - Optional tokens fall back to a base token when a style leaves them out: `--ds-font-hero` (page title; falls back to the display font), and Industrial's `--ds-window`, `--ds-lamp`, `--ds-lamp-off` and `--ds-collar` (instrument windows, indicator lamps, the Panic collar).
   - Every style defines `--ds-level-low`, `--ds-level-mid` and `--ds-level-high`, the three colours of the level gradients (meter, harmonic bars, render progress); the theme maps them to `level-low`, `level-mid` and `level-high`.
   - A page selects its style by setting `data-ds="<style>"` on its root element. The showcase pages set their own style; `/synth/` sets the chosen style.
@@ -145,8 +162,8 @@ Folder layout, routes, and which modules may import which. `<style>` stands for 
 | `audio/` | `audio/` | React, Next, `components/`, `state/`, `design-systems/` |
 | `midi/` | `midi/` | DOM APIs, React, anything else in `src/` |
 | `playback/` | `audio/`, `midi/` | React, `components/` |
-| `live/` | `audio/`, `playback/routing.ts` | React, `components/` |
-| `patch/` | `audio/synths/param-defs.ts`, `midi/types.ts` | React, `components/` |
+| `live/` | `audio/`, `playback/routing.js` | React, `components/` |
+| `patch/` | `audio/synths/param-defs.js`, `midi/types.js` | React, `components/` |
 | `state/` | `audio/`, `midi/`, `playback/`, `live/`, `patch/` | `components/`, `design-systems/` |
 | `design-systems/<style>/` | React, its own files | `audio/`, `midi/`, `playback/`, `live/`, `patch/`, `state/`, other styles |
 | `components/synth/` | everything above, one style's `design-systems/` | — |
@@ -155,14 +172,14 @@ Folder layout, routes, and which modules may import which. `<style>` stands for 
 
 - `audio/` modules take a `BaseAudioContext` argument instead of reading a global, so offline render can pass an `OfflineAudioContext` (`recording.md`).
 - No `audio/`, `midi/`, `playback/`, `live/` or `patch/` module runs code at import time that touches `window`, `navigator` or `AudioContext`. They are safe to import during prerender.
-- Files that use hooks, event handlers or browser APIs start with `'use client'`. `src/components/synth/SynthApp.tsx` is the client boundary for the synth.
+- Files that use hooks, event handlers or browser APIs start with `'use client'`. `src/components/synth/SynthApp.jsx` is the client boundary for the synth.
 
 ## Naming
-- Files: kebab-case (`master-bus.ts`). React components: PascalCase files (`WidgetCard.tsx`), one component per file.
+- Files: kebab-case (`master-bus.js`). React components: PascalCase files (`WidgetCard.jsx`), one component per file. Plain JavaScript only; no TypeScript.
 - Synth type ids match file names: `subtractive`, `fm`, `additive`, `pluck`, `granular`.
 
 ## Git-ignored
-`node_modules/`, `.next/`, `out/`.
+`node_modules/`, `.next/`, `out/`, `.claude/`, `.DS_Store`, `*.tsbuildinfo`, `next-env.d.ts`.
 
 ## Sources
 - Next.js docs, Project structure (https://nextjs.org/docs/app/getting-started/project-structure)

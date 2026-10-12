@@ -12,7 +12,7 @@ Playing widgets live from a MIDI device (Web MIDI API) or the computer keyboard.
 - Disarming a widget calls `noteOff(pitch, ctx.currentTime, 'live')` on it once per held live voice in `held`.
 
 ## Live note layer
-One module (`src/live/input.ts`) receives events from both sources and forwards them to armed widgets.
+One module (`src/live/input.js`) receives events from both sources and forwards them to armed widgets.
 ```ts
 const held = new Map<number, number>();   // pitch -> number of live voices started and not yet released
 let sustain = false;

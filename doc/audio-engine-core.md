@@ -10,7 +10,7 @@ AudioContext lifecycle, engine construction, the widget interface, voices, envel
   - Effects run without a gesture, so the context typically starts `suspended` under autoplay policy. Chrome may allow it based on prior engagement; Firefox follows the user's autoplay settings. Code does not rely on either outcome.
   - React Strict Mode runs effects twice in dev, which creates two contexts.
 ```ts
-// src/audio/context.ts — imported only from client components
+// src/audio/context.js — imported only from client components
 let ctx: AudioContext | null = null;
 let bus: Promise<MasterBus> | null = null;
 export async function ensureRunning(): Promise<AudioContext> {
@@ -52,8 +52,8 @@ export async function ensureRunning(): Promise<AudioContext> {
 voice → widget.output (volume × mute/solo × polyGain) → mixBus → masterGain → safety stage → destination
 ```
 - `buildMasterBus(ctx)` builds `mixBus`, `masterGain` and the safety stage; values and the full chain are in `audio-safety.md`.
-- `buildEngine(ctx: BaseAudioContext, seed: number)` (`src/audio/engine.ts`) builds the master bus and one instrument per widget from rack state. The live app and offline render (`recording.md`) use the same function.
-- `seed` initializes every `mulberry32` PRNG (`src/audio/random.ts`) used by instruments. Audio code does not call `Math.random()`.
+- `buildEngine(ctx: BaseAudioContext, seed: number)` (`src/audio/engine.js`) builds the master bus and one instrument per widget from rack state. The live app and offline render (`recording.md`) use the same function.
+- `seed` initializes every `mulberry32` PRNG (`src/audio/random.js`) used by instruments. Audio code does not call `Math.random()`.
 - Per-voice headroom: velocity gain ≤ 0.3 before widget volume.
 - `latencyHint` is `'interactive'` (the default). `'playback'` increases output latency in exchange for fewer dropouts, which delays live parameter changes and live input.
 

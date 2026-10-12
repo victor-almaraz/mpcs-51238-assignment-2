@@ -10,7 +10,6 @@ import localFont from 'next/font/local';
  */
 const ostrichSans = localFont({
   src: [
-    { path: './fonts/OstrichSans-Light.woff', weight: '300', style: 'normal' },
     { path: './fonts/OstrichSans-Medium.woff', weight: '500', style: 'normal' },
     { path: './fonts/OstrichSans-Black.woff', weight: '900', style: 'normal' },
   ],

@@ -83,7 +83,7 @@ masterGain → preMeter (AnalyserNode), drives the limiting indicator
 
 ### Non-finite guard and recovery
 - On the first non-finite or out-of-threshold input sample, the worklet zeroes the rest of the render quantum, resets its state (DC blocker, delay line, gain), holds silence for 250 ms, fades in over 50 ms and posts `{type:'fault'}` once.
-- On `fault`, `master-bus.ts`:
+- On `fault`, `master-bus.js`:
   1. Stops the transport and calls `releaseAll()` (`midi-playback-scheduling.md`).
   2. Disconnects and recreates every BiquadFilterNode and every worklet node that may hold NaN state (`ks-processor`).
   3. Announces "Audio fault — output muted and reset" in the assertive live region.
@@ -221,7 +221,7 @@ registerProcessor('safety-limiter', SafetyLimiter);
 - `postMessage` allocates; it runs only on fault and duck state changes.
 - `boxSum` accumulates in double precision; a fault reset re-anchors it.
 
-### Wiring (`src/audio/master-bus.ts`)
+### Wiring (`src/audio/master-bus.js`)
 ```ts
 export const SAFETY = {
   ceilingDb: -1,

@@ -16,9 +16,6 @@ export class ParseError extends Error {
   }
 }
 
-/** Max VLQ value (4 bytes of 7 bits). */
-export const VLQ_MAX = 0x0fffffff;
-
 /**
  * Reads a variable-length quantity from `view` at `p.o`, never past `end`. Advances `p.o`.
  * Throws ParseError for a 5th continuation byte or when the bytes run out.
